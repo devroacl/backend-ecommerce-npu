@@ -14,13 +14,13 @@ public class Resena {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name= "puntaje", nullable = true)
+    @Column(name= "puntaje", nullable = false)
     private BigDecimal puntaje;
 
-    @Column(name = "descripcion", length = 80, nullable = false)
+    @Column(name = "descripcion", length = 80, nullable = true)
     private String descripcion;
 
-    @Column(name= "fecha", nullable = true)
+    @Column(name= "fecha", nullable = false)
     private DateTimeException fecha;
 
     @ManyToOne
@@ -39,7 +39,7 @@ public class Resena {
         @JoinColumn(name = "producto_id", nullable = false) // Clave foránea
         private Producto producto;
 
-       
+
         public Producto getProducto() {
             return producto;
         }
