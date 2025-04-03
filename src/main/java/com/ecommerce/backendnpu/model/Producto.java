@@ -2,12 +2,12 @@ package com.ecommerce.backendnpu.model;
 
 import jakarta.persistence.*;
 
+@Entity
+@Table(name = "producto")
 public class Producto {
 
 
-    @Entity
-    @Table(name = "producto")
-    public class producto {
+
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
@@ -27,4 +27,4 @@ public class Producto {
 
     }
 
-}
+

@@ -27,28 +27,14 @@ public class Resena {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    @ManyToOne
+    @JoinColumn(name = "producto_id", nullable = false) // Clave foránea
+    private Producto producto;
 
-    public Usuario getUsuario() {
-        return usuario;
     }
 
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-
-        @ManyToOne
-        @JoinColumn(name = "producto_id", nullable = false) // Clave foránea
-        private Producto producto;
 
 
-        public Producto getProducto() {
-            return producto;
-        }
-
-        public void setProducto(Producto producto) {
-            this.producto = producto;
-
-        }
-        }
 
 
 
