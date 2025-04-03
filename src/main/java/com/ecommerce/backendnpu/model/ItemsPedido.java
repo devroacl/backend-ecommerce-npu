@@ -1,0 +1,34 @@
+package com.ecommerce.backendnpu.model;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table
+public class ItemsPedido {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "cantidad")
+    private Integer cantidad;
+
+    @Column(name = "preciounitario")
+    private Integer preciounitario;
+
+    //pedidos_id INT (Conecta con entidad pedidos)
+
+    @ManyToOne
+    @JoinColumn(name = "pedidosId",nullable = false)
+    private Pedido pedidoId;
+
+
+    /***productos_id Int (conecta con la entidad productos)
+    Falta conectar con Entidad producto***/
+
+    /**@ManyToOne
+     * @JoinColumn(name = "pedido",nullble=false
+     * private Producto producto)**/
+
+
+}
