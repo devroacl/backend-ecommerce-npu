@@ -26,9 +26,9 @@ public class ItemsPedido {
     /***productos_id Int (conecta con la entidad productos)
     Falta conectar con Entidad producto***/
 
-    /**@ManyToOne
-     * @JoinColumn(name = "pedido",nullble=false
-     * private Producto producto)**/
+    @ManyToOne
+    @JoinColumn(name = "pedido",nullable = false)
+    private Producto producto;
 
 
 }
