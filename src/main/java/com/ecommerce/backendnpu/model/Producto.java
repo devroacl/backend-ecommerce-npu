@@ -5,9 +5,6 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "producto")
 public class Producto {
-
-
-
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
@@ -24,6 +21,8 @@ public class Producto {
         @ManyToOne
         @JoinColumn(name = "categoria_id" , nullable = true)
         private Categoria categoria;
+
+
 
     }
 
