@@ -2,6 +2,9 @@ package com.ecommerce.backendnpu.model;
 
 import jakarta.persistence.*;
 import jdk.jfr.Description;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 
 import java.math.BigDecimal;
@@ -9,6 +12,9 @@ import java.time.DateTimeException;
 
 @Entity
 @Table(name= "resena")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Resena {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

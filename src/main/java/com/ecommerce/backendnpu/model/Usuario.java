@@ -1,9 +1,15 @@
 package com.ecommerce.backendnpu.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name ="usuario")
+@Data // Genera getters, setters, equals, hashCode y toString
+@NoArgsConstructor // Genera un constructor sin argumentos
+@AllArgsConstructor // Genera un constructor con argumentos para todos los campos
 public class Usuario {
     //Atributos
 
@@ -14,7 +20,6 @@ public class Usuario {
     @Column(name = "nombre", nullable = false,length =10)
     private  String nombreUsuario;
 
-
     @Column(name = "apellido", nullable = false,length =10)
     private  String apellido;
 
@@ -23,7 +28,6 @@ public class Usuario {
 
     @Column(name = "rut",nullable = false,length = 10)
     private String rut;
-
 
     @Column(name = "verificar",nullable = false)
     private boolean verificar;
@@ -37,15 +41,4 @@ public class Usuario {
     @ManyToOne
     @JoinColumn(name = "rolId",nullable = false)
     private Rol rolId;
-
-
-
-
-
-
-
-
-
-
-
 }

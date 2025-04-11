@@ -8,6 +8,6 @@ class BackendnpuApplicationTests {
 
 	@Test
 	void contextLoads() {
-	}
+	}// Esta prueba verifica que el contexto de Spring se carga sin errores.
 
 }

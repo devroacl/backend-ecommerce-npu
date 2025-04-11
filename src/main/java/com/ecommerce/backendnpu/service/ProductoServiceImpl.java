@@ -1,41 +1,51 @@
 package com.ecommerce.backendnpu.service;
-
 import com.ecommerce.backendnpu.model.Producto;
 import com.ecommerce.backendnpu.repository.ProductoRepository;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.Optional;
 
 @Service
-@Transactional
-@RequiredArgsConstructor
 public class ProductoServiceImpl implements ProductoService {
 
-    //Inyección de dependencia se realiza gracias a la anotación de Lombok
     private final ProductoRepository productoRepository;
 
-
-    // Se debe modificar el retorno de estos metodos,Los metodos estan por defecto por el momento.excepto el metodo borrar,ese esta bien.
-
-    @Override
-    public Producto findById(Long id) {
-        return null;
+    public ProductoServiceImpl(ProductoRepository productoRepository) { // Inyección por constructor
+        this.productoRepository = productoRepository;
     }
 
     @Override
-    public List<Producto> findAll() {
-        return List.of();
+    public List<Producto> getAllProductos() {
+        return productoRepository.findAll();
     }
 
     @Override
-    public Producto save(Producto producto) {
-        return null;
+    public Optional<Producto> getProductoById(Integer id) {
+        return productoRepository.findById(id);
     }
 
     @Override
-    public void deleteProductoById(Long id) {
+    public Producto saveProducto(Producto producto) {
+        return productoRepository.save(producto);
+    }
 
+    @Override
+    public Producto updateProducto(Producto producto) {
+        return productoRepository.save(producto);
+    }
+
+    @Override
+    public void deleteProducto(Integer id) {
+        productoRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Producto> searchProductos(String nombre) {
+        return productoRepository.findByNombreContaining(nombre);
+    }
+
+    @Override
+    public List<Producto> filterProductosByCategoria(Integer categoriaId) {
+        return productoRepository.findByCategoriaId(categoriaId);
     }
 }
