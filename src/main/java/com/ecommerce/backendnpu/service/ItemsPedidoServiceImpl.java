@@ -26,12 +26,6 @@ public class ItemsPedidoServiceImpl implements ItemsPedidoService {
     }
 
     @Override
-    public List<ItemsPedido> findItemsPedidoByPedidoId(Long pedidoId) {
-        // Llama al método del repositorio que busca por pedidoId
-        return itemsPedidoRepository.findByPedido_Id(pedidoId);
-    }
-
-    @Override
     public ItemsPedido saveItemsPedido(ItemsPedido itemPedido) {
         return itemsPedidoRepository.save(itemPedido);
     }
