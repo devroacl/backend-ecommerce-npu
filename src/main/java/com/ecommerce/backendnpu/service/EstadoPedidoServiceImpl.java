@@ -25,7 +25,7 @@ public class EstadoPedidoServiceImpl implements EstadoPedidoService {
 
     @Override
     public Optional<EstadoPedido> findEstadoPedidoByNombre(String nombre) {
-        return estadoPedidoRepository.findByNombre(nombre);
+        return estadoPedidoRepository.findByNombreEstado(nombre);
     }
 
     public EstadoPedido saveEstadoPedido(EstadoPedido estadoPedido) {
