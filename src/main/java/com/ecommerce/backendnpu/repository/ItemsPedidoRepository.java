@@ -8,7 +8,6 @@ import java.util.List;
 
 @Repository
 public interface ItemsPedidoRepository extends JpaRepository<ItemsPedido, Long> {
-    List<ItemsPedido> findByPedido_Id(Long pedidoId); // Convención para buscar por clave foránea
-
+    Long id(Long id);
     // Otros métodos que podemos utilizar incluso Query
 }
