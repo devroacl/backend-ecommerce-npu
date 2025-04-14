@@ -1,6 +1,7 @@
 package com.ecommerce.backendnpu.Api;
 
 import com.ecommerce.backendnpu.model.Producto;
+import com.ecommerce.backendnpu.repository.ProductoRepository;
 import com.ecommerce.backendnpu.service.ProductoService;
 import com.ecommerce.backendnpu.service.ProductoServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -14,15 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/producto")
 public class ProductoRestController {
 
     private final ProductoServiceImpl productoService;
-
-    @Autowired
-    public ProductoRestController(ProductoServiceImpl productoService) {
-        this.productoService = productoService;
-    }
 
     @GetMapping("/id/{id}")
     public ResponseEntity<Producto> findById(@PathVariable Long id) {
@@ -30,11 +27,4 @@ public class ProductoRestController {
                 .map(ResponseEntity::ok) // Si el Optional contiene un Producto, devuelve ResponseEntity con status 200 (OK)
                 .orElse(ResponseEntity.notFound().build()); // Si el Optional está vacío, devuelve ResponseEntity con status 404 (Not Found)
     }
-
-
-
-
-
-
-
 }

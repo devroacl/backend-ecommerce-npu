@@ -2,6 +2,8 @@ package com.ecommerce.backendnpu.Api;
 
 import com.ecommerce.backendnpu.model.Pedido;
 import com.ecommerce.backendnpu.service.PedidoService;
+import com.ecommerce.backendnpu.service.PedidoServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,14 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/pedidos")
 public class PedidoRestController {
-    private  PedidoService pedidoService;
-
-    @Autowired
-    public PedidoRestController(PedidoService pedidoService) {
-        this.pedidoService = pedidoService;
-    }
+    private final PedidoServiceImpl pedidoService;
 
     // Crear un nuevo pedido
     @PostMapping
