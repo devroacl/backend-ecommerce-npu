@@ -13,7 +13,7 @@ public class Producto {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         @Column(name = "id")
-        private Integer id;
+        private Long id;
 
         @Column(name = "nombre", length = 45, nullable = false)
         private String nombre;
@@ -31,14 +31,8 @@ public class Producto {
         @JoinColumn(name = "categoria_id",nullable = true)
         private Categoria categoria;
 
-        @ElementCollection
-        @CollectionTable(name = "producto_fotos", joinColumns = @JoinColumn(name = "producto_id"))
-        @Column(name = "foto_url")
-        private List<String> fotos;
 
-        public boolean getStock() {
-                return false;
-        }
+
 
 
 }
