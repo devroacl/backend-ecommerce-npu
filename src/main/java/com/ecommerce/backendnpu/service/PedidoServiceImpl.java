@@ -3,66 +3,50 @@ package com.ecommerce.backendnpu.service;
 
 import com.ecommerce.backendnpu.model.*;
 import com.ecommerce.backendnpu.repository.*;
-import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
     private final PedidoRepository pedidoRepository;
     private final UsuarioRepository usuarioRepository;
-    private final ProductoRepository productoRepository;
-    private final ItemsPedidoRepository itemsPedidoRepository;
-    private final EstadoPedidoRepository estadoPedidoRepository; // Para gestionar los estados del pedido
 
-    public PedidoServiceImpl(PedidoRepository pedidoRepository, UsuarioRepository usuarioRepository, ProductoRepository productoRepository, ItemsPedidoRepository itemsPedidoRepository, EstadoPedidoRepository estadoPedidoRepository) {
+    @Autowired
+    public PedidoServiceImpl(PedidoRepository pedidoRepository, UsuarioRepository usuarioRepository) {
         this.pedidoRepository = pedidoRepository;
         this.usuarioRepository = usuarioRepository;
-        this.productoRepository = productoRepository;
-        this.itemsPedidoRepository = itemsPedidoRepository;
-        this.estadoPedidoRepository = estadoPedidoRepository;
     }
 
     @Override
-    public List<Pedido> findAllPedidos() {
-        return pedidoRepository.findAll();
-    }
+    public Pedido crearPedido(Pedido pedido) {
+        // Obtener el usuario desde la base de datos usando el ID
+        Long usuarioId = pedido.getUsuarioId().getId();
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + usuarioId));
 
-    @Override
-    public Optional<Pedido> findPedidoById(Long id) {
-        return pedidoRepository.findById(id);
-    }
-
-    @Override
-    public List<Pedido> findPedidosByUsuarioId(Long usuarioId) {
-        return pedidoRepository.findByUsuario_Id(usuarioId);
-    }
-
-    @Override
-    public Pedido savePedido(Pedido pedido) {
+        pedido.setUsuarioId(usuario);
         return pedidoRepository.save(pedido);
     }
 
     @Override
-    public void deletePedidoById(Long id) {
+    public Pedido obtenerPedidoPorId(Long id) {
+        return pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id: " + id));
+    }
+
+    @Override
+    public List<Pedido> obtenerTodosLosPedidos() {
+        return pedidoRepository.findAll();
+    }
+
+    @Override
+    public void eliminarPedido(Long id) {
+        if (!pedidoRepository.existsById(id)) {
+            throw new RuntimeException("Pedido no encontrado con id: " + id);
+        }
         pedidoRepository.deleteById(id);
-    }
-
-    /// falta logica para crear nuevo pedido
-
-    @Override
-    public Pedido crearNuevoPedido(Long usuarioId, List<Long> productoIdsConCantidades) {
-        return null;
-    }
-
-    //Falta logica para actualizar pedido.
-    @Override
-    public void actualizarEstadoPedido(Long pedidoId, String nuevoEstado) {
-
     }
 
 }
