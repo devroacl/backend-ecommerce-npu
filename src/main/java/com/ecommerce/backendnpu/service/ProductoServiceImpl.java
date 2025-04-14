@@ -10,7 +10,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
 
-    public ProductoServiceImpl(ProductoRepository productoRepository) { // Inyección por constructor
+    public ProductoServiceImpl(ProductoRepository productoRepository) {
         this.productoRepository = productoRepository;
     }
 
@@ -20,7 +20,7 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public Optional<Producto> getProductoById(Integer id) {
+    public Optional<Producto> getProductoById(Long id) {
         return productoRepository.findById(id);
     }
 
@@ -35,7 +35,7 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public void deleteProducto(Integer id) {
+    public void deleteProducto(Long id) {
         productoRepository.deleteById(id);
     }
 
