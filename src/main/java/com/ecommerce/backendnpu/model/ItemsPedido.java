@@ -1,9 +1,15 @@
 package com.ecommerce.backendnpu.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table
+@Table(name = "items_pedido")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ItemsPedido {
 
     @Id

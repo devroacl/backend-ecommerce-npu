@@ -2,13 +2,20 @@ package com.ecommerce.backendnpu.model;
 
 import jakarta.persistence.*;
 import jdk.jfr.Description;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 
 import java.math.BigDecimal;
 import java.time.DateTimeException;
+import java.time.LocalDate;
 
 @Entity
 @Table(name= "resena")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Resena {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +28,7 @@ public class Resena {
     private String descripcion;
 
     @Column(name= "fecha", nullable = false)
-    private DateTimeException fecha;
+    private LocalDate fecha;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
