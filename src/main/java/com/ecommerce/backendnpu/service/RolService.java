@@ -1,18 +1,19 @@
 package com.ecommerce.backendnpu.service;
 
 import com.ecommerce.backendnpu.model.Rol;
-
 import java.util.List;
 import java.util.Optional;
 
 public interface RolService {
-    List<Rol> findAllRoles();
+    List<Rol> obtenerTodosLosRoles();
+    Optional<Rol> obtenerRolPorId(Long id);
+    Rol obtenerRolPorNombre(String nombre);
+    Rol guardarRol(Rol rol);
+    Rol actualizarRol(Long id, Rol rol);
+    void eliminarRol(Long id);
+    boolean existeRolPorNombre(String nombre);
 
-    Optional<Rol> findRolById(Long id);
-
-    Optional<Rol> findRolByCargo(String cargo);
-
-    Rol saveRol(Rol rol);
-
-    void deleteRolById(Long id);
+    // Métodos específicos para los roles predefinidos
+    Rol obtenerRolComprador();
+    Rol obtenerRolVendedor();
 }

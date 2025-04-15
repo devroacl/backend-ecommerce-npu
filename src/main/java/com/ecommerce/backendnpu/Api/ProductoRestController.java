@@ -1,30 +1,52 @@
 package com.ecommerce.backendnpu.Api;
 
 import com.ecommerce.backendnpu.model.Producto;
-import com.ecommerce.backendnpu.repository.ProductoRepository;
 import com.ecommerce.backendnpu.service.ProductoService;
-import com.ecommerce.backendnpu.service.ProductoServiceImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/producto")
+@RequestMapping("/productos")
 public class ProductoRestController {
+    private final ProductoService productoService;
 
-    private final ProductoServiceImpl productoService;
+    // Crear un nuevo producto
+    @PostMapping
+    public ResponseEntity<Producto> crearProducto(@RequestBody Producto producto) {
+        Producto nuevoProducto = productoService.saveProducto(producto);
+        return new ResponseEntity<>(nuevoProducto, HttpStatus.CREATED);
+    }
 
-    @GetMapping("/id/{id}")
-    public ResponseEntity<Producto> findById(@PathVariable Long id) {
-        return productoService.getProductoById(id)
-                .map(ResponseEntity::ok) // Si el Optional contiene un Producto, devuelve ResponseEntity con status 200 (OK)
-                .orElse(ResponseEntity.notFound().build()); // Si el Optional está vacío, devuelve ResponseEntity con status 404 (Not Found)
+    // Obtener todos los productos
+    @GetMapping
+    public ResponseEntity<List<Producto>> obtenerTodosLosProductos() {
+        List<Producto> productos = productoService.getAllProductos();
+        return new ResponseEntity<>(productos, HttpStatus.OK);
+    }
+
+    // Obtener un producto por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Producto> obtenerProductoPorId(@PathVariable Long id) {
+        Producto producto = productoService.getProductoById(id);
+        return new ResponseEntity<>(producto, HttpStatus.OK);
+    }
+
+    // Eliminar un producto por ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
+        productoService.deleteProducto(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // Actualizar un producto
+    @PutMapping("/{id}")
+    public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto producto) {
+        Producto productoActualizado = productoService.updateProducto(id, producto);
+        return new ResponseEntity<>(productoActualizado, HttpStatus.OK);
     }
 }

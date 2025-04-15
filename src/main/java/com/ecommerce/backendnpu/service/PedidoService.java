@@ -10,5 +10,6 @@ public interface PedidoService {
     Pedido obtenerPedidoPorId(Long id);
     List<Pedido> obtenerTodosLosPedidos();
     void eliminarPedido(Long id);
+    Pedido actualizarPedido(Long id);
 }
 
