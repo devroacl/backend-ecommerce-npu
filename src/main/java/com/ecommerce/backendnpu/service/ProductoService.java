@@ -2,14 +2,14 @@ package com.ecommerce.backendnpu.service;
 
 import com.ecommerce.backendnpu.model.Producto;
 import java.util.List;
-import java.util.Optional;
 
 public interface ProductoService {
     List<Producto> getAllProductos();
-    Optional<Producto> getProductoById(Long id);
-    Producto saveProducto(Producto producto);
-    Producto updateProducto(Producto producto);
+    Producto getProductoById(Long id);
+    Producto saveProducto(Producto producto);  // Para crear nuevos productos
+    Producto updateProducto(Long id, Producto producto);  // Actualizar con ID explícito
     void deleteProducto(Long id);
     List<Producto> searchProductos(String nombre);
     List<Producto> filterProductosByCategoria(Integer categoriaId);
+    // Eliminé crearProducto() porque es redundante con saveProducto()
 }

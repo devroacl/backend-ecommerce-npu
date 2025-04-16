@@ -49,4 +49,8 @@ public class PedidoServiceImpl implements PedidoService {
         pedidoRepository.deleteById(id);
     }
 
+    @Override
+    public Pedido actualizarPedido(Long id) {
+        return null;
+    }
 }

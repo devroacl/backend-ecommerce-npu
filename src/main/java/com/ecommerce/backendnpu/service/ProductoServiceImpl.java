@@ -1,9 +1,9 @@
 package com.ecommerce.backendnpu.service;
+
 import com.ecommerce.backendnpu.model.Producto;
 import com.ecommerce.backendnpu.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProductoServiceImpl implements ProductoService {
@@ -20,8 +20,9 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public Optional<Producto> getProductoById(Long id) {
-        return productoRepository.findById(id);
+    public Producto getProductoById(Long id) {
+        return productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
     }
 
     @Override
@@ -30,8 +31,15 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public Producto updateProducto(Producto producto) {
-        return productoRepository.save(producto);
+    public Producto updateProducto(Long id, Producto producto) {
+        // Verificamos que el producto exista
+        Producto productoExistente = getProductoById(id);
+        // Actualizamos los campos necesarios
+        productoExistente.setNombre(producto.getNombre());
+        productoExistente.setDescripcion(producto.getDescripcion());
+        productoExistente.setPrecio(producto.getPrecio());
+        // ... otros campos que necesites actualizar
+        return productoRepository.save(productoExistente);
     }
 
     @Override

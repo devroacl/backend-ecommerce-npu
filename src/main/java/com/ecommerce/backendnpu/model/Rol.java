@@ -6,15 +6,22 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name = "rol")
-@Data // Genera getters, setters, equals, hashCode y toString
-@NoArgsConstructor // Genera un constructor sin argumentos
-@AllArgsConstructor // Genera un constructor con argumentos para todos los campos
+@Table(name = "roles")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Rol {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "cargo",nullable = false,length =40)
-    private String cargo;
+    @Column(name = "nombre", nullable = false, unique = true, length = 20)
+    private String nombre;
+
+    @Column(name = "descripcion", length = 100)
+    private String descripcion;
+
+    // Constantes para los roles predefinidos
+    public static final Long ID_COMPRADOR = 1L;
+    public static final Long ID_VENDEDOR = 2L;
 }

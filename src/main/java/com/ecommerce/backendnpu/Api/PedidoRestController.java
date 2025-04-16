@@ -31,19 +31,27 @@ public class PedidoRestController {
         return new ResponseEntity<>(pedidos, HttpStatus.OK);
     }
 
-
+    //localhost/pedidos/1
 
     // Obtener un pedido por ID
-    @GetMapping("id/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Pedido> obtenerPedidoPorId(@PathVariable Long id) {
         Pedido pedido = pedidoService.obtenerPedidoPorId(id);
         return new ResponseEntity<>(pedido, HttpStatus.OK);
     }
 
     // Eliminar un pedido por ID
-    @DeleteMapping("id/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarPedido(@PathVariable Long id) {
         pedidoService.eliminarPedido(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Pedido> actualizarPedido(@PathVariable Long id, @RequestBody Pedido pedido) {
+        pedidoService.actualizarPedido(id);
+        return new ResponseEntity<>(pedido, HttpStatus.OK);
+    }
+
+
 }
