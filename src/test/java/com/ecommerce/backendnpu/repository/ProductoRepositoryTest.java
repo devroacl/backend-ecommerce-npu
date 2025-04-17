@@ -1,91 +1,42 @@
+// ProductoRepositoryTest.java
 package com.ecommerce.backendnpu.repository;
 
 import com.ecommerce.backendnpu.model.Producto;
-import com.ecommerce.backendnpu.testdata.TestData;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+@DataJpaTest
+@ActiveProfiles("test")
+public class ProductoRepositoryTest {
 
-@ExtendWith(MockitoExtension.class)
-class ProductoRepositoryTest {
-
-    @Mock
+    @Autowired
     private ProductoRepository productoRepository;
 
-    @Test
-    void findAll_ShouldReturnAllProducts() {
-        // Arrange
-        List<Producto> sampleProducts = TestData.getSampleProducts();
-        when(productoRepository.findAll()).thenReturn(sampleProducts);
-
-        // Act
-        List<Producto> result = productoRepository.findAll();
-
-        // Assert
-        assertEquals(5, result.size(), "Deberían haber 5 productos");
-        assertEquals("Laptop", result.get(0).getNombre(), "El primer producto debería ser Laptop");
-        verify(productoRepository, times(1)).findAll();
+    private void insertTestData() {
+        Producto p1 = new Producto(1L, "Laptop", 1500.00, 1L);
+        Producto p2 = new Producto(2L, "Mouse", 25.99, 1L);
+        Producto p3 = new Producto(3L, "Teclado", 45.50, 1L);
+        Producto p4 = new Producto(4L, "Monitor", 300.00, 1L);
+        Producto p5 = new Producto(5L, "Cargador", 30.00, 2L);
+        productoRepository.saveAll(List.of(p1, p2, p3, p4, p5));
     }
 
     @Test
-    void findById_ExistingId_ShouldReturnProduct() {
-        // Arrange
-        Producto sample = TestData.getSampleProducts().get(0);
-        when(productoRepository.findById(1L)).thenReturn(Optional.of(sample));
-
-        // Act
-        Optional<Producto> result = productoRepository.findById(1L);
-
-        // Assert
-        assertTrue(result.isPresent(), "Debería encontrar el producto");
-        assertEquals(999.99, result.get().getPrecio(), 0.001, "El precio debería coincidir");
-        verify(productoRepository, times(1)).findById(1L);
+    void findByNombreContaining_ShouldReturnProducts() {
+        insertTestData();
+        List<Producto> resultados = productoRepository.findByNombreContaining("Mo");
+        assertEquals(2, resultados.size()); // Mouse y Monitor
     }
 
     @Test
-    void findById_NonExistingId_ShouldReturnEmpty() {
-        // Arrange
-        when(productoRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // Act
-        Optional<Producto> result = productoRepository.findById(999L);
-
-        // Assert
-        assertTrue(result.isEmpty(), "No debería encontrar el producto");
-        verify(productoRepository, times(1)).findById(999L);
-    }
-
-    @Test
-    void save_ShouldPersistProduct() {
-        // Arrange
-        Producto newProduct = new Producto(6L, "Webcam", 45.00);
-        when(productoRepository.save(newProduct)).thenReturn(newProduct);
-
-        // Act
-        Producto savedProduct = productoRepository.save(newProduct);
-
-        // Assert
-        assertNotNull(savedProduct, "El producto guardado no debería ser null");
-        assertEquals("Webcam", savedProduct.getNombre());
-        verify(productoRepository, times(1)).save(newProduct);
-    }
-
-    @Test
-    void delete_ShouldRemoveProduct() {
-        // Arrange
-        doNothing().when(productoRepository).deleteById(1L);
-
-        // Act
-        productoRepository.deleteById(1L);
-
-        // Assert
-        verify(productoRepository, times(1)).deleteById(1L);
+    void findByCategoriaId_ShouldReturnProducts() {
+        insertTestData();
+        List<Producto> resultados = productoRepository.findByCategoriaId(1L);
+        assertEquals(4, resultados.size()); // 4 productos en categoría 1
     }
 }
