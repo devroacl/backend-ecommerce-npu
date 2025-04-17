@@ -47,7 +47,7 @@ public class PedidoRestController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("/{id}")
+   @PutMapping("/{id}")
     public ResponseEntity<Pedido> actualizarPedido(@PathVariable Long id, @RequestBody Pedido pedido) {
         pedidoService.actualizarPedido(id);
         return new ResponseEntity<>(pedido, HttpStatus.OK);
