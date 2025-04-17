@@ -46,5 +46,7 @@ public class Producto {
                 this.precio = precio;
         }
 
-
+//Contructor para que producto tenga nombre,id,
+    public Producto(long l, String mouse, double v, long l1) {
+    }
 }
