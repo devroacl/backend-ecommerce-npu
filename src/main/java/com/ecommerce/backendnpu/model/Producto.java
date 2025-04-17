@@ -49,4 +49,8 @@ public class Producto {
 //Contructor para que producto tenga nombre,id,
     public Producto(long l, String mouse, double v, long l1) {
     }
+
+    public Producto(String laptop, double v) {
+    }
+
 }
