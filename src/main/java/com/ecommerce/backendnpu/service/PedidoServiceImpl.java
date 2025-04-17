@@ -13,7 +13,7 @@ public class PedidoServiceImpl implements PedidoService {
     private final PedidoRepository pedidoRepository;
     private final UsuarioRepository usuarioRepository;
 
-    @Autowired
+
     public PedidoServiceImpl(PedidoRepository pedidoRepository, UsuarioRepository usuarioRepository) {
         this.pedidoRepository = pedidoRepository;
         this.usuarioRepository = usuarioRepository;
@@ -49,8 +49,11 @@ public class PedidoServiceImpl implements PedidoService {
         pedidoRepository.deleteById(id);
     }
 
+    // Hay que actualizar el hacer pedidos.---Por el momento retorna null porque no hay meotodos ni nada implementado aun.
     @Override
     public Pedido actualizarPedido(Long id) {
         return null;
     }
+
+
 }
