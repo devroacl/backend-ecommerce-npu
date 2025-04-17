@@ -48,6 +48,10 @@ public class RolServiceImpl implements RolService {
     public Rol actualizarRol(Long id, Rol rol) {
         return rolRepository.findById(id)
                 .map(rolExistente -> {
+                    // Validar nombre duplicado (excepto para el mismo rol)
+                    if (!rolExistente.getNombre().equals(rol.getNombre()) && existeRolPorNombre(rol.getNombre())) {
+                        throw new RuntimeException("Ya existe un rol con el nombre: " + rol.getNombre());
+                    }
                     rolExistente.setNombre(rol.getNombre());
                     rolExistente.setDescripcion(rol.getDescripcion());
                     return rolRepository.save(rolExistente);
@@ -58,8 +62,8 @@ public class RolServiceImpl implements RolService {
     @Override
     @Transactional
     public void eliminarRol(Long id) {
-        if (id.equals(Rol.ID_COMPRADOR) || id.equals(Rol.ID_VENDEDOR)) {
-            throw new RuntimeException("No se pueden eliminar los roles predefinidos");
+        if (id.equals(Rol.ID_ADMIN) || id.equals(Rol.ID_VENDEDOR) || id.equals(Rol.ID_COMPRADOR)) {
+            throw new RuntimeException("No se pueden eliminar roles predefinidos");
         }
         rolRepository.deleteById(id);
     }
@@ -70,17 +74,25 @@ public class RolServiceImpl implements RolService {
         return rolRepository.existsByNombre(nombre);
     }
 
+    // Métodos para roles predefinidos
     @Override
     @Transactional(readOnly = true)
-    public Rol obtenerRolComprador() {
-        return rolRepository.findById(Rol.ID_COMPRADOR)
-                .orElseThrow(() -> new RuntimeException("Rol de comprador no configurado"));
+    public Rol obtenerRolAdmin() {
+        return rolRepository.findById(Rol.ID_ADMIN)
+                .orElseThrow(() -> new RuntimeException("Rol admin no encontrado"));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Rol obtenerRolVendedor() {
         return rolRepository.findById(Rol.ID_VENDEDOR)
-                .orElseThrow(() -> new RuntimeException("Rol de vendedor no configurado"));
+                .orElseThrow(() -> new RuntimeException("Rol vendedor no encontrado"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Rol obtenerRolComprador() {
+        return rolRepository.findById(Rol.ID_COMPRADOR)
+                .orElseThrow(() -> new RuntimeException("Rol comprador no encontrado"));
     }
 }
