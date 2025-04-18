@@ -38,7 +38,6 @@ public class ProductoServiceImpl implements ProductoService {
         productoExistente.setNombre(producto.getNombre());
         productoExistente.setDescripcion(producto.getDescripcion());
         productoExistente.setPrecio(producto.getPrecio());
-        // ... otros campos que necesites actualizar
         return productoRepository.save(productoExistente);
     }
 
@@ -46,14 +45,11 @@ public class ProductoServiceImpl implements ProductoService {
     public void deleteProducto(Long id) {
         productoRepository.deleteById(id);
     }
+    
 
     @Override
-    public List<Producto> searchProductos(String nombre) {
-        return productoRepository.findByNombreContaining(nombre);
-    }
-
-    @Override
-    public List<Producto> filterProductosByCategoria(Integer categoriaId) {
+    public List<Producto> filterProductosByCategoria(Long categoriaId) {
         return productoRepository.findByCategoriaId(categoriaId);
     }
+
 }

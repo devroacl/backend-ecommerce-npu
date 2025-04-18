@@ -38,7 +38,17 @@ public class Usuario {
     @Column(name ="contrasena",nullable = false,length =15 )
     private String contrasena;
 
-    @ManyToOne
-    @JoinColumn(name = "rolId",nullable = false)
-    private Rol rolId;
+    /**@ManyToOne  ESTO CAUSABA ERROR CON LA LLAVE FORANEA
+    @JoinColumn(name = "rol_id",nullable = false)
+    private Rol rolId; **/
+
+    // Renombramos el atributo a 'rol' y forzamos el nombre exacto de la columna FK:
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "rol_id",
+            referencedColumnName = "id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_usuario_rol")
+    )
+    private Rol rol;
 }

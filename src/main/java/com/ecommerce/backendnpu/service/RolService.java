@@ -13,7 +13,9 @@ public interface RolService {
     void eliminarRol(Long id);
     boolean existeRolPorNombre(String nombre);
 
-    // Métodos específicos para los roles predefinidos
+    // Métodos para roles predefinidos (¡DEBEN ESTAR AQUÍ!)
     Rol obtenerRolComprador();
     Rol obtenerRolVendedor();
+    Rol obtenerRolAdmin();
+
 }
