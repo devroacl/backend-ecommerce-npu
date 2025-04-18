@@ -1,16 +1,15 @@
 package com.ecommerce.backendnpu.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
 @Entity
 @Table(name = "producto")
-@Data // Genera getters, setters, toString, etc.
+@Setter
+@Getter
+@Data
 @NoArgsConstructor // Constructor sin argumentos
 @AllArgsConstructor // Constructor con TODOS los campos (opcional)
 @Builder   // para crear objetos de manera flexible.
@@ -37,20 +36,5 @@ public class Producto {
         @JoinColumn(name = "categoria_id",nullable = true)
         private Categoria categoria;
 
-
-
-        // Constructor personalizado para campos básicos---para que en test que pide 3 campos
-        public Producto(Long id, String nombre, Double precio) {
-                this.id = id;
-                this.nombre = nombre;
-                this.precio = precio;
-        }
-
-//Contructor para que producto tenga nombre,id,
-    public Producto(long l, String mouse, double v, long l1) {
-    }
-
-    public Producto(String laptop, double v) {
-    }
 
 }
