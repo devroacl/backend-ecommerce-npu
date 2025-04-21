@@ -4,12 +4,17 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name ="usuario")
-@Data // Genera getters, setters, equals, hashCode y toString
-@NoArgsConstructor // Genera un constructor sin argumentos
-@AllArgsConstructor // Genera un constructor con argumentos para todos los campos
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Usuario {
     //Atributos
 
@@ -17,38 +22,41 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "nombre", nullable = false,length =10)
-    private  String nombreUsuario;
+    @Column(name = "nombre", nullable = false, length = 50)
+    private String nombreUsuario;
 
-    @Column(name = "apellido", nullable = false,length =10)
-    private  String apellido;
+    @Column(name = "apellido", nullable = false, length = 50)
+    private String apellido;
 
-    @Column(name = "correo",nullable = false,length = 50)
+    @Column(name = "correo", nullable = false, unique = true, length = 50)
     private String correo;
 
-    @Column(name = "rut",nullable = false,length = 10)
+    @Column(name = "rut", nullable = false, length = 10)
     private String rut;
 
-    @Column(name = "verificar",nullable = false)
+    @Column(name = "verificar", nullable = false)
     private boolean verificar;
 
-    @Column(name = "token",length = 60,nullable = true)
+    @Column(name = "token", length = 60, nullable = true)
     private String token;
 
-    @Column(name ="contrasena",nullable = false,length =15 )
+    @Column(name ="contrasena", nullable = false)
     private String contrasena;
 
-    /**@ManyToOne  ESTO CAUSABA ERROR CON LA LLAVE FORANEA
-    @JoinColumn(name = "rol_id",nullable = false)
-    private Rol rolId; **/
+    private boolean activo = true;
 
-    // Renombramos el atributo a 'rol' y forzamos el nombre exacto de la columna FK:
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "rol_id",
-            referencedColumnName = "id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_usuario_rol")
-    )
+    // Un usuario tiene un solo rol (relación muchos a uno)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
+
+    // Método para obtener autoridades (para Spring Security)
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(rol.getNombre().name()));
+    }
+
+    // Método de conveniencia para verificar el rol
+    public boolean tieneRol(ERol rolEnum) {
+        return rol != null && rol.getNombre() == rolEnum;
+    }
 }

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "items_pedido")
 @Data
@@ -20,14 +22,13 @@ public class ItemsPedido {
     private Integer cantidad;
 
     @Column(name = "preciounitario")
-    private Integer preciounitario;
+    private Double preciounitario;
 
     //pedidos_id INT (Conecta con entidad pedidos)
 
     @ManyToOne
-    @JoinColumn(name = "pedidosId",nullable = false)
-    private Pedido pedidoId;
-
+    @JoinColumn(name = "pedidosId", nullable = false)
+    private Pedido pedido;
 
     /***productos_id Int (conecta con la entidad productos)
     Falta conectar con Entidad producto***/
@@ -37,4 +38,6 @@ public class ItemsPedido {
     private Producto producto;
 
 
+    public void setSubtotal(Integer Integer) {
+    }
 }

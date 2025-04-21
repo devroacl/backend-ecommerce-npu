@@ -15,14 +15,10 @@ public class Rol {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nombre", nullable = false, unique = true, length = 20)
-    private String nombre;
+    @Enumerated(EnumType.STRING)
+    @Column(unique = true, nullable = false,length = 20)
+    private ERol nombre; // ADMIN, VENDEDOR, COMPRADOR
 
-    @Column(name = "descripcion", length = 100)
-    private String descripcion;
-
-    // Constantes para poblar o referenciar directamente
-    public static final Long ID_ADMIN    = 1L;
-    public static final Long ID_VENDEDOR = 2L;
-    public static final Long ID_COMPRADOR= 3L;
+    // Getters y Setters
 }
+

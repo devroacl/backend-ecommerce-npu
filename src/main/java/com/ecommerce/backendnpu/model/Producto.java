@@ -1,40 +1,64 @@
 package com.ecommerce.backendnpu.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "producto")
-@Setter
-@Getter
 @Data
-@NoArgsConstructor // Constructor sin argumentos
-@AllArgsConstructor // Constructor con TODOS los campos (opcional)
-@Builder   // para crear objetos de manera flexible.
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Producto {
-
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "id")
         private Long id;
 
-        @Column(name = "nombre", length = 45, nullable = false)
+        @Column(nullable = false)
         private String nombre;
 
-        @Column(name = "descripcion", length = 255)
+        @Column(length = 1000)
         private String descripcion;
 
-        @Column(name = "precio")
+        @Column(nullable = false)
         private Double precio;
 
-        @Column(name = "cantidad")
-        private Integer cantidad;
+        private String imagen;
 
-        @ManyToOne
-        @JoinColumn(name = "categoria_id",nullable = true)
+        private Integer stock;
+
+        @Column(name = "fecha_creacion")
+        private LocalDateTime fechaCreacion;
+
+        @Column(name = "fecha_actualizacion")
+        private LocalDateTime fechaActualizacion;
+
+        private boolean activo = true;  // Por defecto está activo
+
+        @ManyToOne(fetch = FetchType.EAGER)
+        @JoinColumn(name = "categoria_id")
         private Categoria categoria;
 
+        @ManyToOne(fetch = FetchType.EAGER)
+        @JoinColumn(name = "vendedor_id")
+        private Usuario vendedor;
 
+        // Métodos de ciclo de vida
+        @PrePersist
+        protected void onCreate() {
+                fechaCreacion = LocalDateTime.now();
+                fechaActualizacion = LocalDateTime.now();
+        }
+
+        @PreUpdate
+        protected void onUpdate() {
+                fechaActualizacion = LocalDateTime.now();
+        }
 }
