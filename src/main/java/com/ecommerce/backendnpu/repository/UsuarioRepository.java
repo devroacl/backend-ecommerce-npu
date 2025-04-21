@@ -9,9 +9,14 @@ import java.util.Optional;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    Optional<Usuario> findByCorreo(String correo);
+    // Método corregido
+    Optional<Usuario> findByCorreo(String correo); //  Retorna Optional
 
     Optional<Usuario> findByRut(String rut);
 
     Optional<Usuario> findByToken(String token);
+
+    // Verifica si un correo ya existe en la base de datos
+    boolean existsByCorreo(String correo);
+
 }
