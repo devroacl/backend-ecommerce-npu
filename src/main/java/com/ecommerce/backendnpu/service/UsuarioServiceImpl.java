@@ -4,10 +4,11 @@ import com.ecommerce.backendnpu.model.Rol;
 import com.ecommerce.backendnpu.model.Usuario;
 import com.ecommerce.backendnpu.repository.RolRepository;
 import com.ecommerce.backendnpu.repository.UsuarioRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-
+@Service
 public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;

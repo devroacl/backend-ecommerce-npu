@@ -1,6 +1,7 @@
 package com.ecommerce.backendnpu.service;
 
 import com.ecommerce.backendnpu.model.Categoria;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;

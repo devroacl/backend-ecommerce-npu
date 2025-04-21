@@ -32,8 +32,6 @@ public class EstadoPedidoServiceImpl implements EstadoPedidoService {
         return estadoPedidoRepository.save(estadoPedido);
     }
 
-    public void deleteEstadoPedidoById(Long id) {
-        estadoPedidoRepository.deleteById(id);
-    }
+
 
 }

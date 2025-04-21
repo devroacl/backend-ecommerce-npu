@@ -10,5 +10,5 @@ public interface EstadoPedidoService {
     Optional<EstadoPedido> findEstadoPedidoById(Long id);
     Optional<EstadoPedido> findEstadoPedidoByNombre(String nombre);
     EstadoPedido saveEstadoPedido(EstadoPedido estadoPedido);
-    void deleteEstadoPedidoById(Long id);
+
 }
