@@ -31,7 +31,9 @@ public class RolServiceImpl implements RolService {
     @Override
     @Transactional(readOnly = true)
     public Rol obtenerRolPorNombre(String nombre) {
-        return rolRepository.findByNombre(nombre);
+        // Corrección clave: Manejo del Optional con orElseThrow
+        return rolRepository.findByNombre(nombre)
+                .orElseThrow(() -> new RuntimeException("Rol '" + nombre + "' no encontrado"));
     }
 
     @Override
@@ -48,7 +50,6 @@ public class RolServiceImpl implements RolService {
     public Rol actualizarRol(Long id, Rol rol) {
         return rolRepository.findById(id)
                 .map(rolExistente -> {
-                    // Validar nombre duplicado (excepto para el mismo rol)
                     if (!rolExistente.getNombre().equals(rol.getNombre()) && existeRolPorNombre(rol.getNombre())) {
                         throw new RuntimeException("Ya existe un rol con el nombre: " + rol.getNombre());
                     }
@@ -74,7 +75,6 @@ public class RolServiceImpl implements RolService {
         return rolRepository.existsByNombre(nombre);
     }
 
-    // Métodos para roles predefinidos
     @Override
     @Transactional(readOnly = true)
     public Rol obtenerRolAdmin() {

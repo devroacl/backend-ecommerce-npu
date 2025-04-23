@@ -9,5 +9,7 @@ public interface ProductoService {
     Producto saveProducto(Producto producto);  // Para crear nuevos productos
     Producto updateProducto(Long id, Producto producto);  // Actualizar con ID explícito
     void deleteProducto(Long id);
-    List<Producto> filterProductosByCategoria(Long categoriaId);
+    List<Producto> searchProductos(String nombre);
+    List<Producto> filterProductosByCategoria(Integer categoriaId);
+    // Eliminé crearProducto() porque es redundante con saveProducto()
 }

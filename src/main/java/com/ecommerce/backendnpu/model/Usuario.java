@@ -6,43 +6,36 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name ="usuario")
-@Data // Genera getters, setters, equals, hashCode y toString
-@NoArgsConstructor // Genera un constructor sin argumentos
-@AllArgsConstructor // Genera un constructor con argumentos para todos los campos
+@Table(name = "usuario")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Usuario {
-    //Atributos
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
-    @Column(name = "nombre", nullable = false,length =10)
-    private  String nombreUsuario;
+    @Column(name = "nombre", nullable = false, length = 10)
+    private String nombre; // Campo renombrado de "nombreUsuario" a "nombre"
 
-    @Column(name = "apellido", nullable = false,length =10)
-    private  String apellido;
+    @Column(name = "apellido", nullable = false, length = 10)
+    private String apellido;
 
-    @Column(name = "correo",nullable = false,length = 50)
+    @Column(name = "correo", nullable = false, length = 50)
     private String correo;
 
-    @Column(name = "rut",nullable = false,length = 10)
+    @Column(name = "rut", nullable = false, length = 10)
     private String rut;
 
-    @Column(name = "verificar",nullable = false)
+    @Column(name = "verificar", nullable = false)
     private boolean verificar;
 
-    @Column(name = "token",length = 60,nullable = true)
+    @Column(name = "token", length = 60)
     private String token;
 
-    @Column(name ="contrasena",nullable = false,length =15 )
+    @Column(name = "contrasena", nullable = false, length = 15)
     private String contrasena;
 
-    /**@ManyToOne  ESTO CAUSABA ERROR CON LA LLAVE FORANEA
-    @JoinColumn(name = "rol_id",nullable = false)
-    private Rol rolId; **/
-
-    // Renombramos el atributo a 'rol' y forzamos el nombre exacto de la columna FK:
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "rol_id",

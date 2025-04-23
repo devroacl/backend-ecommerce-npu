@@ -22,4 +22,6 @@ public interface UsuarioService {
 
     // Método específico para el registro de un nuevo usuario
     Usuario registrarNuevoUsuario(Usuario usuario, String cargoRol);
+
+    boolean existeUsuarioPorCorreo(String correo);
 }

@@ -8,6 +8,8 @@ import com.ecommerce.backendnpu.service.ProductoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
@@ -49,7 +51,6 @@ public class ProductoControllerTest {
         return objectMapper.writeValueAsString(obj);
     }
 
-    // Tests para POST /productos
     @Test
     void crearProducto_WhenValidRequest_Returns201Created() throws Exception {
         // Arrange
@@ -70,7 +71,7 @@ public class ProductoControllerTest {
         // Act & Assert
         mockMvc.perform(post("/productos")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(producto)))
+                        .content(objectMapper.writeValueAsString(producto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.nombre").value("Laptop"))
@@ -93,7 +94,6 @@ public class ProductoControllerTest {
                 .andExpect(jsonPath("$.message").value("Error al guardar"));
     }
 
-    // Tests para GET /productos
     @Test
     void obtenerTodosLosProductos_WhenProductsExist_ReturnsList() throws Exception {
         // Arrange
@@ -198,7 +198,6 @@ public class ProductoControllerTest {
         verify(productoService, times(1)).deleteProducto(99L);
     }
 
-    // Tests para PUT /productos/{id}
     @Test
     void actualizarProducto_WhenValidRequest_ReturnsUpdatedProduct() throws Exception {
         // Arrange
