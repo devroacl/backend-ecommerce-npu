@@ -20,7 +20,6 @@ public class PedidoServiceImpl implements PedidoService {
     private final EstadoPedidoRepository estadoPedidoRepository;
 
 
-
     public PedidoServiceImpl(PedidoRepository pedidoRepository,
                              UsuarioRepository usuarioRepository,
                              ItemsPedidoRepository itemsPedidoRepository,

@@ -1,10 +1,12 @@
 package com.ecommerce.backendnpu.Api;
 
+
 import com.ecommerce.backendnpu.model.Resena;
 import com.ecommerce.backendnpu.service.ResenaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -20,9 +22,15 @@ public class ResenaRestController {
 
     // Crear una nueva reseña
     @PostMapping
-    public ResponseEntity<Resena> crearResena(@RequestBody Resena resena) {
-        Resena nuevaResena = resenaService.guardarResena(resena);
-        return new ResponseEntity<>(nuevaResena, HttpStatus.CREATED);
+    public ResponseEntity<?> crearResena(@RequestBody Resena resena, Authentication authentication) {
+        try {
+            Resena nuevaResena = resenaService.guardarResena(resena, authentication);
+            return new ResponseEntity<>(nuevaResena, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // Obtener todas las reseñas
@@ -42,24 +50,28 @@ public class ResenaRestController {
 
     // Eliminar una reseña por ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarResena(@PathVariable Long id) {
-        if (resenaService.obtenerResenaPorId(id).isPresent()) {
-            resenaService.eliminarResena(id);  // Usamos el servicio en lugar del repository
+    public ResponseEntity<?> eliminarResena(@PathVariable Long id, Authentication authentication) {
+        try {
+            resenaService.eliminarResena(id, authentication);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     // Actualizar una reseña
     @PutMapping("/{id}")
-    public ResponseEntity<Resena> actualizarResena(@PathVariable Long id, @RequestBody Resena resena) {
-        return resenaService.obtenerResenaPorId(id)
-                .map(resenaExistente -> {
-                    resena.setId(id); // Asegurarnos que el ID coincida
-                    Resena resenaActualizada = resenaService.guardarResena(resena);
-                    return new ResponseEntity<>(resenaActualizada, HttpStatus.OK);
-                })
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<?> actualizarResena(@PathVariable Long id, @RequestBody Resena resena, Authentication authentication) {
+        try {
+            Resena resenaActualizada = resenaService.actualizarResena(id, resena, authentication);
+            return new ResponseEntity<>(resenaActualizada, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     // Endpoints adicionales específicos para reseñas

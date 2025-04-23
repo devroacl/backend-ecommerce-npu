@@ -85,10 +85,6 @@ public class AuthController {
                 rolUsuario = rolRepository.findByNombre(ERol.ROLE_VENDEDOR)
                         .orElseThrow(() -> new RuntimeException("Error: Rol VENDEDOR no configurado"));
                 break;
-            case "AMBOS":
-                rolUsuario = rolRepository.findByNombre(ERol.ROLE_VENDEDOR)
-                        .orElseThrow(() -> new RuntimeException("Error: Rol VENDEDOR no configurado"));
-                break;
             default:
                 return ResponseEntity.badRequest().body("Error: Tipo de usuario inválido");
         }
@@ -96,12 +92,11 @@ public class AuthController {
         Usuario usuario = new Usuario();
         usuario.setCorreo(request.correo());
         usuario.setContrasena(passwordEncoder.encode(request.contrasena()));
-        usuario.setNombreUsuario(request.nombreUsuario());
+        usuario.setNombreUsuario(request.nombre());
         usuario.setApellido(request.apellido());
         usuario.setRut(request.rut());
-        usuario.setVerificar(false);
         usuario.setRol(rolUsuario);
-        usuario.setActivo(true);
+        //usuario.setActivo(true);
 
         usuarioRepository.save(usuario);
 
@@ -124,36 +119,84 @@ public class AuthController {
         ));
     }
 
-    // Métodos de validación de RUT sin cambios...
-    private boolean validarRut(String rut) {
-        rut = rut.replace(".", "").replace("-", "");
-        if (rut.length() < 2) return false;
+    public boolean validarRut(String rut) {
+        // Si viene vacío retornamos false
+        if (rut == null || rut.trim().isEmpty()) {
+            return false;
+        }
 
-        String numero = rut.substring(0, rut.length() - 1);
-        char dv = rut.charAt(rut.length() - 1);
+        // Eliminamos puntos y guiones
+        rut = rut.replace(".", "").replace("-", "").trim().toUpperCase();
+
+        // Verificamos que tenga largo mínimo
+        if (rut.length() < 2) {
+            return false;
+        }
+
+        // Separamos el número del dígito verificador
+        String rutNumero = rut.substring(0, rut.length() - 1);
+        char dvIngresado = rut.charAt(rut.length() - 1);
 
         try {
-            int numeroInt = Integer.parseInt(numero);
-            return calcularDv(numeroInt) == Character.toUpperCase(dv);
+            // Convertimos a entero
+            int rutInt = Integer.parseInt(rutNumero);
+
+            // Calculamos el dígito verificador esperado
+            char dvEsperado = calcularDv(rutInt);
+
+            // Comparamos el dígito verificador ingresado con el calculado
+            return dvIngresado == dvEsperado;
         } catch (NumberFormatException e) {
             return false;
         }
     }
 
-    private char calcularDv(int rut) {
-        int suma = 0;
-        int multiplicador = 2;
-        while (rut > 0) {
-            int digito = rut % 10;
-            suma += digito * multiplicador;
-            multiplicador = (multiplicador == 7) ? 2 : multiplicador + 1;
-            rut /= 10;
+    /**
+     * Calcula el dígito verificador de un RUT usando el algoritmo del módulo 11.
+     * @param rut Número del RUT sin dígito verificador
+     * @return Carácter correspondiente al dígito verificador ('0'-'9' o 'K')
+     */
+    public char calcularDv(int rut) {
+        int m = 0;
+        int s = 1;
+
+        // Algoritmo módulo 11
+        for (; rut != 0; rut /= 10) {
+            s = (s + rut % 10 * (9 - m++ % 6)) % 11;
         }
-        int resultado = 11 - (suma % 11);
-        return switch (resultado) {
-            case 11 -> '0';
-            case 10 -> 'K';
-            default -> (char) (resultado + '0');
-        };
+
+        // Determinamos el dígito verificador
+        return (char) (s != 0 ? s + '0' - 1 : 'K');
     }
+
+    /**
+     * Método auxiliar para formatear un RUT con puntos y guión.
+     * @param rut El RUT sin formato (solo números y dígito verificador)
+     * @return RUT formateado (ejemplo: 12.345.678-9)
+     */
+    public String formatearRut(String rut) {
+        // Eliminamos puntos y guiones si los tiene
+        rut = rut.replace(".", "").replace("-", "").trim();
+
+        // Separamos número y dígito verificador
+        String numero = rut.substring(0, rut.length() - 1);
+        String dv = rut.substring(rut.length() - 1);
+
+        // Formateamos con puntos
+        StringBuilder resultado = new StringBuilder();
+        int count = 0;
+
+        for (int i = numero.length() - 1; i >= 0; i--) {
+            if (count == 3 && i != 0) {
+                resultado.insert(0, ".");
+                count = 0;
+            }
+            resultado.insert(0, numero.charAt(i));
+            count++;
+        }
+
+        // Agregamos el guión y dígito verificador
+        return resultado + "-" + dv;
+    }
+
 }

@@ -41,10 +41,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.findByRut(rut);
     }
 
-    @Override
-    public Optional<Usuario> findUsuarioByToken(String token) {
-        return usuarioRepository.findByToken(token);
-    }
+
 
     @Override
     public Usuario saveUsuario(Usuario usuario) {

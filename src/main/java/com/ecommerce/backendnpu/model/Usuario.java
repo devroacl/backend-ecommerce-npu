@@ -34,16 +34,11 @@ public class Usuario {
     @Column(name = "rut", nullable = false, length = 10)
     private String rut;
 
-    @Column(name = "verificar", nullable = false)
-    private boolean verificar;
-
-    @Column(name = "token", length = 60, nullable = true)
-    private String token;
 
     @Column(name ="contrasena", nullable = false)
     private String contrasena;
 
-    private boolean activo = true;
+    //private boolean activo = true;
 
     // Un usuario tiene un solo rol (relación muchos a uno)
     @ManyToOne(fetch = FetchType.EAGER)

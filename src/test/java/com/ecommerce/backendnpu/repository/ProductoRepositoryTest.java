@@ -50,7 +50,6 @@ public class ProductoRepositoryTest {
         vendedor.setApellido("Test");
         vendedor.setCorreo("vendedor@test.com");
         vendedor.setRut("12345678-9");
-        vendedor.setVerificar(true);
         vendedor.setContrasena("password123");
         vendedor.setRol(rol);
         vendedor = usuarioRepository.save(vendedor);

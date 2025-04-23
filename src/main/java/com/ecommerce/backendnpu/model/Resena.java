@@ -1,14 +1,12 @@
 package com.ecommerce.backendnpu.model;
 
+
 import jakarta.persistence.*;
-import jdk.jfr.Description;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 
 import java.math.BigDecimal;
-import java.time.DateTimeException;
 import java.time.LocalDate;
 
 @Entity
@@ -24,7 +22,7 @@ public class Resena {
     @Column(name= "puntaje", nullable = false)
     private BigDecimal puntaje;
 
-    @Column(name = "descripcion", length = 80, nullable = true)
+    @Column(name = "descripcion", length = 500, nullable = true)
     private String descripcion;
 
     @Column(name= "fecha", nullable = false)
@@ -35,13 +33,9 @@ public class Resena {
     private Usuario usuario;
 
     @ManyToOne
-    @JoinColumn(name = "producto_id", nullable = false) // Clave foránea
+    @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
-
-    }
-
-
-
+}
 
 
 

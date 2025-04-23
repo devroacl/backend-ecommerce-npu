@@ -14,7 +14,6 @@ public interface UsuarioService {
 
     Optional<Usuario> findUsuarioByRut(String rut);
 
-    Optional<Usuario> findUsuarioByToken(String token);
 
     Usuario saveUsuario(Usuario usuario);
 

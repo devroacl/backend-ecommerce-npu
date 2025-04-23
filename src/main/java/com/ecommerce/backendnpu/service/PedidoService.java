@@ -17,5 +17,7 @@ public interface PedidoService {
     List<Pedido> obtenerPedidosPorUsuario(Long usuarioId);
     List<ItemsPedido> obtenerItemsPedido(Long pedidoId);
     Pedido actualizarEstadoPedido(Long id, String nuevoEstado);
+
+
 }
 

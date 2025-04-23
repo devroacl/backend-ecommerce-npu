@@ -14,7 +14,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByRut(String rut);
 
-    Optional<Usuario> findByToken(String token);
 
     // Verifica si un correo ya existe en la base de datos
     boolean existsByCorreo(String correo);
