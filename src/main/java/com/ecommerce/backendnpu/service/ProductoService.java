@@ -12,6 +12,4 @@ public interface ProductoService {
     List<Producto> searchProductos(String nombre);
     List<Producto> filterProductosByCategoria(Integer categoriaId);
     // Eliminé crearProducto() porque es redundante con saveProducto()
-
-
 }

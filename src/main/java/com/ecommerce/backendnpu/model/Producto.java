@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Entity
 @Table(name = "producto")
 @Data // Genera getters, setters, toString, etc.
@@ -34,23 +32,31 @@ public class Producto {
         private Integer cantidad;
 
         @ManyToOne
-        @JoinColumn(name = "categoria_id",nullable = true)
+        @JoinColumn(name = "categoria_id", nullable = true)
         private Categoria categoria;
 
-
-
-        // Constructor personalizado para campos básicos---para que en test que pide 3 campos
+        // Constructor personalizado para campos básicos
         public Producto(Long id, String nombre, Double precio) {
                 this.id = id;
                 this.nombre = nombre;
                 this.precio = precio;
         }
 
-//Contructor para que producto tenga nombre,id,
-    public Producto(long l, String mouse, double v, long l1) {
-    }
+        // Constructor para productos con categoría
+        public Producto(long id, String nombre, double precio, long categoriaId) {
+                this.id = id;
+                this.nombre = nombre;
+                this.precio = precio;
+                if (categoriaId > 0) {
+                        Categoria cat = new Categoria();
+                        cat.setId((int) categoriaId);
+                        this.categoria = cat;
+                }
+        }
 
-    public Producto(String laptop, double v) {
-    }
-
+        // Constructor para nuevos productos
+        public Producto(String nombre, double precio) {
+                this.nombre = nombre;
+                this.precio = precio;
+        }
 }

@@ -49,4 +49,18 @@ public class ProductoRestController {
         Producto productoActualizado = productoService.updateProducto(id, producto);
         return new ResponseEntity<>(productoActualizado, HttpStatus.OK);
     }
+
+    // Buscar productos por nombre
+    @GetMapping("/search")
+    public ResponseEntity<List<Producto>> buscarProductosPorNombre(@RequestParam String nombre) {
+        List<Producto> productos = productoService.searchProductos(nombre);
+        return new ResponseEntity<>(productos, HttpStatus.OK);
+    }
+
+    // Filtrar productos por categoría
+    @GetMapping("/categoria/{categoriaId}")
+    public ResponseEntity<List<Producto>> filtrarProductosPorCategoria(@PathVariable Integer categoriaId) {
+        List<Producto> productos = productoService.filterProductosByCategoria(categoriaId);
+        return new ResponseEntity<>(productos, HttpStatus.OK);
+    }
 }

@@ -2,17 +2,19 @@ package com.ecommerce.backendnpu.service;
 
 import com.ecommerce.backendnpu.model.Producto;
 import com.ecommerce.backendnpu.repository.ProductoRepository;
+import com.ecommerce.backendnpu.service.ProductoService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
-
-    public ProductoServiceImpl(ProductoRepository productoRepository) {
-        this.productoRepository = productoRepository;
-    }
 
     @Override
     public List<Producto> getAllProductos() {
@@ -22,7 +24,7 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     public Producto getProductoById(Long id) {
         return productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
     }
 
     @Override
@@ -32,28 +34,32 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public Producto updateProducto(Long id, Producto producto) {
-        // Verificamos que el producto exista
-        Producto productoExistente = getProductoById(id);
-        // Actualizamos los campos necesarios
-        productoExistente.setNombre(producto.getNombre());
-        productoExistente.setDescripcion(producto.getDescripcion());
-        productoExistente.setPrecio(producto.getPrecio());
-        // ... otros campos que necesites actualizar
-        return productoRepository.save(productoExistente);
+        // Verificar que el producto existe
+        getProductoById(id);
+        producto.setId(id);
+        return productoRepository.save(producto);
     }
 
     @Override
     public void deleteProducto(Long id) {
+        // Verificar que el producto existe
+        getProductoById(id);
         productoRepository.deleteById(id);
     }
 
     @Override
     public List<Producto> searchProductos(String nombre) {
-        return productoRepository.findByNombreContaining(nombre);
+        // Implementación básica, idealmente usar un método del repositorio
+        return productoRepository.findAll().stream()
+                .filter(p -> p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<Producto> filterProductosByCategoria(Integer categoriaId) {
-        return productoRepository.findByCategoriaId(categoriaId);
+        // Implementación básica, idealmente usar un método del repositorio
+        return productoRepository.findAll().stream()
+                .filter(p -> p.getCategoria() != null && p.getCategoria().equals(categoriaId))
+                .collect(Collectors.toList());
     }
 }

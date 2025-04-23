@@ -55,11 +55,11 @@ public class AuthenticationService {
         // Obtener el rol (con manejo adecuado del Optional)
         Rol rol = rolRepository.findByNombre(request.getRol().toUpperCase())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        String.format("Rol '%s' no encontrado en la base de datos", request.getRol())));
-
+                        String.format("Rol '%s' no encontrado", request.getRol())
+                ));
         // Crear y guardar el usuario
         Usuario usuario = new Usuario();
-        usuario.setNombreUsuario(request.getNombre());
+        usuario.setNombre(request.getNombre());
         usuario.setApellido(request.getApellido());
         usuario.setCorreo(request.getCorreo());
         usuario.setRut(request.getRut());
