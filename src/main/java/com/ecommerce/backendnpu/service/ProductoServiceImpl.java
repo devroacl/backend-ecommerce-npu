@@ -47,11 +47,20 @@ public class ProductoServiceImpl implements ProductoService {
         productoRepository.deleteById(id);
     }
 
+
     @Override
     public List<Producto> searchProductos(String nombre) {
         // Implementación básica, idealmente usar un método del repositorio
         return productoRepository.findAll().stream()
                 .filter(p -> p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Producto> filterProductosByCategoria(Integer categoriaId) {
+        // Implementación básica, idealmente usar un método del repositorio
+        return productoRepository.findAll().stream()
+                .filter(p -> p.getCategoria() != null && p.getCategoria().equals(categoriaId))
                 .collect(Collectors.toList());
     }
 
