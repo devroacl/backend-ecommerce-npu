@@ -63,4 +63,13 @@ public class ProductoRestController {
         List<Producto> productos = productoService.filterProductosByCategoria(categoriaId);
         return new ResponseEntity<>(productos, HttpStatus.OK);
     }
+
+
+    // Obtener productos por categoría
+    @GetMapping("/categoria/{categoriaId}")
+    public ResponseEntity<List<Producto>> obtenerPorCategoria(@PathVariable Long categoriaId) {
+        List<Producto> productos = productoService.filterProductosByCategoria(categoriaId);
+        return ResponseEntity.ok(productos);
+    }
+
 }

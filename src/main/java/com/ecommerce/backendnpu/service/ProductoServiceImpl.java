@@ -34,10 +34,13 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public Producto updateProducto(Long id, Producto producto) {
-        // Verificar que el producto existe
-        getProductoById(id);
-        producto.setId(id);
-        return productoRepository.save(producto);
+        // Verificamos que el producto exista
+        Producto productoExistente = getProductoById(id);
+        // Actualizamos los campos necesarios
+        productoExistente.setNombre(producto.getNombre());
+        productoExistente.setDescripcion(producto.getDescripcion());
+        productoExistente.setPrecio(producto.getPrecio());
+        return productoRepository.save(productoExistente);
     }
 
     @Override
@@ -46,6 +49,7 @@ public class ProductoServiceImpl implements ProductoService {
         getProductoById(id);
         productoRepository.deleteById(id);
     }
+
 
 
     @Override
@@ -71,4 +75,5 @@ public class ProductoServiceImpl implements ProductoService {
                 .filter(p -> p.getCategoria() != null && p.getCategoria().equals(categoriaId))
                 .collect(Collectors.toList());
     }
+
 }

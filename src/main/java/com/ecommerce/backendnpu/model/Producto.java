@@ -1,14 +1,13 @@
 package com.ecommerce.backendnpu.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "producto")
-@Data // Genera getters, setters, toString, etc.
+@Setter
+@Getter
+@Data
 @NoArgsConstructor // Constructor sin argumentos
 @AllArgsConstructor // Constructor con TODOS los campos (opcional)
 @Builder   // para crear objetos de manera flexible.
