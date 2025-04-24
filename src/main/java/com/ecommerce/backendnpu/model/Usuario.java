@@ -11,16 +11,14 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name ="usuario")
+@Table(name = "usuario")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Usuario {
-    //Atributos
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "nombre", nullable = false, length = 50)
     private String nombreUsuario;
@@ -34,23 +32,20 @@ public class Usuario {
     @Column(name = "rut", nullable = false, length = 10)
     private String rut;
 
-
-    @Column(name ="contrasena", nullable = false)
+    @Column(name = "contrasena", nullable = false)
     private String contrasena;
 
-    //private boolean activo = true;
-
-    // Un usuario tiene un solo rol (relación muchos a uno)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
 
-    // Método para obtener autoridades (para Spring Security)
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (rol == null || rol.getNombre() == null) {
+            return List.of(new SimpleGrantedAuthority("ROLE_DEFAULT"));
+        }
         return List.of(new SimpleGrantedAuthority(rol.getNombre().name()));
     }
 
-    // Método de conveniencia para verificar el rol
     public boolean tieneRol(ERol rolEnum) {
         return rol != null && rol.getNombre() == rolEnum;
     }

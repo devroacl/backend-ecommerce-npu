@@ -32,7 +32,6 @@ public class Pedido {
     @JoinColumn(name = "estado_pedido", nullable = false)
     private EstadoPedido estadoPedido;
 
-    // Constructor lógico para los tests
     public Pedido(Usuario usuario, EstadoPedido estadoPedido, BigDecimal total) {
         this.fecha = LocalDateTime.now();
         this.usuario = usuario;

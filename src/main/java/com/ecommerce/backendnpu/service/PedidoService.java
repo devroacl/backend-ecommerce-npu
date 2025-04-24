@@ -13,7 +13,7 @@ public interface PedidoService {
     Pedido obtenerPedidoPorId(Long id);
     List<Pedido> obtenerTodosLosPedidos();
     void eliminarPedido(Long id);
-    Pedido actualizarPedido(Long id);
+    Pedido actualizarPedido(Long id, Pedido pedidoActualizado);
     List<Pedido> obtenerPedidosPorUsuario(Long usuarioId);
     List<ItemsPedido> obtenerItemsPedido(Long pedidoId);
     Pedido actualizarEstadoPedido(Long id, String nuevoEstado);

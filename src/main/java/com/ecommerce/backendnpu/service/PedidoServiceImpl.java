@@ -1,9 +1,6 @@
 package com.ecommerce.backendnpu.service;
 
-import com.ecommerce.backendnpu.model.EstadoPedido;
-import com.ecommerce.backendnpu.model.ItemsPedido;
-import com.ecommerce.backendnpu.model.Pedido;
-import com.ecommerce.backendnpu.model.Usuario;
+import com.ecommerce.backendnpu.model.*;
 import com.ecommerce.backendnpu.repository.EstadoPedidoRepository;
 import com.ecommerce.backendnpu.repository.ItemsPedidoRepository;
 import com.ecommerce.backendnpu.repository.PedidoRepository;
@@ -14,11 +11,11 @@ import java.util.List;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
+
     private final PedidoRepository pedidoRepository;
     private final UsuarioRepository usuarioRepository;
     private final ItemsPedidoRepository itemsPedidoRepository;
     private final EstadoPedidoRepository estadoPedidoRepository;
-
 
     public PedidoServiceImpl(PedidoRepository pedidoRepository,
                              UsuarioRepository usuarioRepository,
@@ -30,14 +27,11 @@ public class PedidoServiceImpl implements PedidoService {
         this.estadoPedidoRepository = estadoPedidoRepository;
     }
 
-
     @Override
     public Pedido crearPedido(Pedido pedido) {
-        // Obtener el usuario desde la base de datos usando el ID
         Long usuarioId = pedido.getUsuario().getId();
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + usuarioId));
-
         pedido.setUsuario(usuario);
         return pedidoRepository.save(pedido);
     }
@@ -62,29 +56,22 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public Pedido actualizarPedido(Long id) {
-        Pedido pedido = pedidoRepository.findById(id)
+    public Pedido actualizarPedido(Long id, Pedido pedidoActualizado) {
+        Pedido pedidoExistente = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id: " + id));
-
-        // Lógica para actualizar el pedido
-
-        return pedidoRepository.save(pedido);
+        pedidoExistente.setTotal(pedidoActualizado.getTotal());
+        pedidoExistente.setEstadoPedido(pedidoActualizado.getEstadoPedido());
+        return pedidoRepository.save(pedidoExistente);
     }
 
     @Override
     public List<Pedido> obtenerPedidosPorUsuario(Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + usuarioId));
-
-        return pedidoRepository.findByUsuarioId(usuario);
+        // Ahora usa directamente el ID sin necesidad de buscar el Usuario
+        return pedidoRepository.findByUsuarioId(usuarioId);
     }
 
     @Override
     public List<ItemsPedido> obtenerItemsPedido(Long pedidoId) {
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id: " + pedidoId));
-
-        // Asumiendo que tienes un método en el repositorio de ItemsPedido
         return itemsPedidoRepository.findByPedido_Id(pedidoId);
     }
 
@@ -92,12 +79,8 @@ public class PedidoServiceImpl implements PedidoService {
     public Pedido actualizarEstadoPedido(Long id, String nuevoEstadoNombre) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id: " + id));
-
-        // Buscar el estado por su nombre (asumiendo que hay un método para buscar por nombre)
         EstadoPedido nuevoEstado = estadoPedidoRepository.findByNombreEstado(nuevoEstadoNombre)
-                .orElseThrow(() -> new RuntimeException("Estado no encontrado con nombre: " + nuevoEstadoNombre));
-
-        // Usar el método correcto según el modelo
+                .orElseThrow(() -> new RuntimeException("Estado no encontrado: " + nuevoEstadoNombre));
         pedido.setEstadoPedido(nuevoEstado);
         return pedidoRepository.save(pedido);
     }

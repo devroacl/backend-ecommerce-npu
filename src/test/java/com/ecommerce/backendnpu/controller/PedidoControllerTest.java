@@ -4,36 +4,37 @@ import com.ecommerce.backendnpu.Api.PedidoRestController;
 import com.ecommerce.backendnpu.model.*;
 import com.ecommerce.backendnpu.service.PedidoServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(PedidoRestController.class)
-class PedidoRestControllerTest {
+class PedidoControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
     private PedidoServiceImpl pedidoService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @InjectMocks
+    private PedidoRestController pedidoRestController;
 
     private Usuario usuario;
     private EstadoPedido estado;
@@ -41,14 +42,26 @@ class PedidoRestControllerTest {
 
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
+        objectMapper.registerModule(new JavaTimeModule()); // Configura Jackson para LocalDateTime
+        mockMvc = MockMvcBuilders.standaloneSetup(pedidoRestController).build();
+
+        // Inicialización de Rol
+        Rol rol = new Rol();
+        rol.setNombre(ERol.CLIENTE);
+
+        // Configuración de Usuario
         usuario = new Usuario();
         usuario.setId(1L);
         usuario.setNombreUsuario("Juan");
+        usuario.setRol(rol); // Rol asignado
 
+        // Configuración de EstadoPedido
         estado = new EstadoPedido();
         estado.setId(1L);
         estado.setNombreEstado("En proceso");
 
+        // Configuración de Pedido
         pedido = new Pedido(usuario, estado, BigDecimal.valueOf(150.50));
         pedido.setId(1L);
         pedido.setFecha(LocalDateTime.now());
@@ -56,7 +69,7 @@ class PedidoRestControllerTest {
 
     @Test
     void testCrearPedido() throws Exception {
-        Mockito.when(pedidoService.crearPedido(any(Pedido.class))).thenReturn(pedido);
+        when(pedidoService.crearPedido(any(Pedido.class))).thenReturn(pedido);
 
         mockMvc.perform(post("/pedidos")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -67,8 +80,7 @@ class PedidoRestControllerTest {
 
     @Test
     void testObtenerTodosLosPedidos() throws Exception {
-        List<Pedido> pedidos = List.of(pedido);
-        Mockito.when(pedidoService.obtenerTodosLosPedidos()).thenReturn(pedidos);
+        when(pedidoService.obtenerTodosLosPedidos()).thenReturn(List.of(pedido));
 
         mockMvc.perform(get("/pedidos"))
                 .andExpect(status().isOk())
@@ -77,7 +89,7 @@ class PedidoRestControllerTest {
 
     @Test
     void testObtenerPedidoPorId() throws Exception {
-        Mockito.when(pedidoService.obtenerPedidoPorId(1L)).thenReturn(pedido);
+        when(pedidoService.obtenerPedidoPorId(1L)).thenReturn(pedido);
 
         mockMvc.perform(get("/pedidos/1"))
                 .andExpect(status().isOk())
@@ -86,8 +98,7 @@ class PedidoRestControllerTest {
 
     @Test
     void testObtenerPedidosPorUsuario() throws Exception {
-        List<Pedido> pedidos = List.of(pedido);
-        Mockito.when(pedidoService.obtenerPedidosPorUsuario(1L)).thenReturn(pedidos);
+        when(pedidoService.obtenerPedidosPorUsuario(1L)).thenReturn(List.of(pedido));
 
         mockMvc.perform(get("/pedidos/usuario/1"))
                 .andExpect(status().isOk())
@@ -101,9 +112,8 @@ class PedidoRestControllerTest {
         item.setPedido(pedido);
         item.setCantidad(2);
         item.setSubtotal(300);
-        item.setProducto(null); // Simulación mínima
 
-        Mockito.when(pedidoService.obtenerItemsPedido(1L)).thenReturn(List.of(item));
+        when(pedidoService.obtenerItemsPedido(1L)).thenReturn(List.of(item));
 
         mockMvc.perform(get("/pedidos/1/items"))
                 .andExpect(status().isOk())
@@ -114,7 +124,7 @@ class PedidoRestControllerTest {
     void testActualizarEstadoPedido() throws Exception {
         pedido.getEstadoPedido().setNombreEstado("Entregado");
 
-        Mockito.when(pedidoService.actualizarEstadoPedido(eq(1L), eq("Entregado")))
+        when(pedidoService.actualizarEstadoPedido(eq(1L), eq("Entregado")))
                 .thenReturn(pedido);
 
         Map<String, String> estadoUpdate = Map.of("estado", "Entregado");
@@ -128,7 +138,7 @@ class PedidoRestControllerTest {
 
     @Test
     void testActualizarEstadoPedido_BadRequest() throws Exception {
-        Map<String, String> estadoUpdate = Map.of("otraCosa", ""); // clave incorrecta
+        Map<String, String> estadoUpdate = Map.of("otraCosa", "");
 
         mockMvc.perform(patch("/pedidos/1/estado")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -138,7 +148,7 @@ class PedidoRestControllerTest {
 
     @Test
     void testEliminarPedido() throws Exception {
-        Mockito.doNothing().when(pedidoService).eliminarPedido(1L);
+        doNothing().when(pedidoService).eliminarPedido(1L);
 
         mockMvc.perform(delete("/pedidos/1"))
                 .andExpect(status().isNoContent());
@@ -146,11 +156,14 @@ class PedidoRestControllerTest {
 
     @Test
     void testActualizarPedido() throws Exception {
-        Mockito.doNothing().when(pedidoService).actualizarPedido(1L);
+        Pedido pedidoActualizado = new Pedido(usuario, estado, BigDecimal.valueOf(200.00));
+        pedidoActualizado.setId(1L);
+
+        when(pedidoService.actualizarPedido(eq(1L), any(Pedido.class))).thenReturn(pedidoActualizado);
 
         mockMvc.perform(put("/pedidos/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(pedido)))
+                        .content(objectMapper.writeValueAsString(pedidoActualizado)))
                 .andExpect(status().isOk());
     }
 }
