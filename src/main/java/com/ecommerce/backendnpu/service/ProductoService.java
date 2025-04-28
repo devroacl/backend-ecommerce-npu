@@ -1,28 +1,30 @@
 package com.ecommerce.backendnpu.service;
 
+
+import com.ecommerce.backendnpu.model.Categoria;
 import com.ecommerce.backendnpu.model.Producto;
+import com.ecommerce.backendnpu.model.Usuario;
+
 import java.util.List;
+import java.util.Optional;
 
-public interface ProductoService{
+public interface ProductoService {
 
-    // Métodos para obtener productos
-    List<Producto> getAllProductos();  // Para admin - todos los productos
-    List<Producto> obtenerTodosLosProductosActivos();  // Para público - solo productos activos
-    Producto getProductoById(Long id);  // Obtener cualquier producto por ID
-    Producto obtenerProductoActivoPorId(Long id);  // Obtener solo productos activos por ID
-
-    // Métodos para filtrar productos
-    List<Producto> filterProductosByCategoria(Long categoriaId);  // Filtrar por categoría
-    List<Producto> obtenerProductosPorVendedor(String correoVendedor);  // Productos por vendedor
-
-    // Métodos para gestionar productos (vendedor)
-    Producto saveProducto(Producto producto, String correoVendedor);
-    Producto actualizarProducto(Long id, Producto producto, String correoVendedor);
-    void eliminarProducto(Long id, String correoVendedor);
-
-    // Métodos para administración (admin)
-    Producto bloquearProducto(Long id);
-    Producto desbloquearProducto(Long id);
+        List<Producto> findAll();
+        List<Producto> findByCategoria(Categoria categoria);
+        List<Producto> findByVendedor(Usuario vendedor);
+        List<Producto> findByNombreContaining(String nombre);
+        Producto save(Producto producto);
+        void delete(Long id);
+        Optional<Producto> findById(Long id);
+        List<Producto> findByActivoTrue();
+        List<Producto> findByCategoriaAndActivoTrue(Categoria categoria);
+        List<Producto> findByVendedorCorreo(String correoVendedor);
+        Producto actualizarProducto(Long id, Producto productoActualizado, String correoVendedor);
+        void eliminarProducto(Long id, String correoVendedor);
+        Producto bloquearProducto(Long id);
+        Producto desbloquearProducto(Long id);
+    List<Producto> findByNombreContainingAndActivoTrue(String nombre);
+    }
 
 
-}

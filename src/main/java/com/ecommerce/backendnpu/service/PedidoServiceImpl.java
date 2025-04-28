@@ -1,104 +1,105 @@
 package com.ecommerce.backendnpu.service;
 
-import com.ecommerce.backendnpu.model.EstadoPedido;
-import com.ecommerce.backendnpu.model.ItemsPedido;
-import com.ecommerce.backendnpu.model.Pedido;
-import com.ecommerce.backendnpu.model.Usuario;
-import com.ecommerce.backendnpu.repository.EstadoPedidoRepository;
+import com.ecommerce.backendnpu.model.*;
 import com.ecommerce.backendnpu.repository.ItemsPedidoRepository;
 import com.ecommerce.backendnpu.repository.PedidoRepository;
-import com.ecommerce.backendnpu.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
-    private final PedidoRepository pedidoRepository;
-    private final UsuarioRepository usuarioRepository;
-    private final ItemsPedidoRepository itemsPedidoRepository;
-    private final EstadoPedidoRepository estadoPedidoRepository;
 
+    @Autowired
+    private PedidoRepository pedidoRepository;
 
-    public PedidoServiceImpl(PedidoRepository pedidoRepository,
-                             UsuarioRepository usuarioRepository,
-                             ItemsPedidoRepository itemsPedidoRepository,
-                             EstadoPedidoRepository estadoPedidoRepository) {
-        this.pedidoRepository = pedidoRepository;
-        this.usuarioRepository = usuarioRepository;
-        this.itemsPedidoRepository = itemsPedidoRepository;
-        this.estadoPedidoRepository = estadoPedidoRepository;
-    }
+    @Autowired
+    private  ItemsPedidoRepository itemsPedidoRepository;
+    @Autowired
+    private CarritoService carritoService; // Asegúrate de que está inyectado
 
+    private ProductoService productoService;
 
     @Override
-    public Pedido crearPedido(Pedido pedido) {
-        // Obtener el usuario desde la base de datos usando el ID
-        Long usuarioId = pedido.getUsuario().getId();
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + usuarioId));
-
-        pedido.setUsuario(usuario);
-        return pedidoRepository.save(pedido);
-    }
-
-    @Override
-    public Pedido obtenerPedidoPorId(Long id) {
-        return pedidoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id: " + id));
-    }
-
-    @Override
-    public List<Pedido> obtenerTodosLosPedidos() {
+    public List<Pedido> findAll() {
         return pedidoRepository.findAll();
     }
 
     @Override
-    public void eliminarPedido(Long id) {
-        if (!pedidoRepository.existsById(id)) {
-            throw new RuntimeException("Pedido no encontrado con id: " + id);
-        }
+    public Optional<Pedido> findById(Long id) {
+        return pedidoRepository.findById(id);
+    }
+
+    @Override
+    public List<Pedido> findByComprador(Usuario comprador) {
+        return pedidoRepository.findByComprador(comprador);
+    }
+
+    @Override
+    public List<Pedido> findByVendedor(Usuario vendedor) {
+        // Implementar lógica para encontrar pedidos que contengan productos de este vendedor
+        List<Pedido> todosLosPedidos = pedidoRepository.findAll();
+        return todosLosPedidos.stream()
+                .filter(pedido -> tieneProductosDeVendedor(pedido, vendedor))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean tieneProductosDeVendedor(Pedido pedido, Usuario vendedor) {
+        return pedido.getPedidoItems().stream()
+                .anyMatch(item -> item.getProducto().getVendedor().getId().equals(vendedor.getId()));
+    }
+    @Override
+    public Pedido save(Pedido pedido) {
+        return pedidoRepository.save(pedido);
+    }
+
+    @Override
+    public void delete(Long id) {
         pedidoRepository.deleteById(id);
     }
 
+    // Logica para que el carrito de productos pase a pedido confirmado.
     @Override
-    public Pedido actualizarPedido(Long id) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id: " + id));
+    @Transactional
+    public Pedido crearPedidoDesdeCarrito(Usuario usuario) {
+        Carrito carrito = carritoService.findByUsuario(usuario)
+                .orElseThrow(() -> new RuntimeException("Carrito no encontrado"));
 
-        // Lógica para actualizar el pedido
+        // Validar stock y convertir a Pedido
+        Pedido pedido = new Pedido();
+        pedido.setComprador(usuario);
+        pedido.setEstado(EstadoPedido.PENDIENTE);
+
+        for (CarritoItem item : carrito.getItems()) {
+            Producto producto = item.getProducto();
+            if (producto.getStock() < item.getCantidad()) {
+                throw new RuntimeException("Stock insuficiente para: " + producto.getNombre());
+            }
+
+            PedidoItem pedidoItem = new PedidoItem();
+            pedidoItem.setProducto(producto);
+            pedidoItem.setCantidad(item.getCantidad());
+            pedidoItem.setPreciounitario(producto.getPrecio()); // Corregido
+            pedido.agregarItem(pedidoItem);
+
+            // Actualizar stock
+            producto.setStock(producto.getStock() - item.getCantidad());
+            productoService.save(producto);
+        }
+
+        pedido.calcularTotal(); // Método implementado
 
         return pedidoRepository.save(pedido);
     }
 
     @Override
-    public List<Pedido> obtenerPedidosPorUsuario(Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + usuarioId));
-
-        return pedidoRepository.findByUsuarioId(usuario);
+    public List<PedidoItem> findPedidoItemsByVendedor(Usuario vendedor) {
+        return itemsPedidoRepository.findByProducto_Vendedor(vendedor);
     }
 
-    @Override
-    public List<ItemsPedido> obtenerItemsPedido(Long pedidoId) {
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id: " + pedidoId));
-
-        // Asumiendo que tienes un método en el repositorio de ItemsPedido
-        return itemsPedidoRepository.findByPedido_Id(pedidoId);
-    }
-
-    @Override
-    public Pedido actualizarEstadoPedido(Long id, String nuevoEstadoNombre) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con id: " + id));
-
-        // Buscar el estado por su nombre (asumiendo que hay un método para buscar por nombre)
-        EstadoPedido nuevoEstado = estadoPedidoRepository.findByNombreEstado(nuevoEstadoNombre)
-                .orElseThrow(() -> new RuntimeException("Estado no encontrado con nombre: " + nuevoEstadoNombre));
-
-        // Usar el método correcto según el modelo
-        pedido.setEstadoPedido(nuevoEstado);
-        return pedidoRepository.save(pedido);
-    }
 }

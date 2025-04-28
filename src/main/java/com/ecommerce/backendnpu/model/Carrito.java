@@ -20,51 +20,23 @@ public class Carrito {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "fecha_creacion", nullable = false)
-    private LocalDateTime fechaCreacion;
-
-    @Column(name = "ultima_modificacion")
-    private LocalDateTime ultimaModificacion;
-
-    @Column(name = "total", nullable = false)
-    private BigDecimal total;
-
     @OneToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
     @OneToMany(mappedBy = "carrito", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemCarrito> items = new ArrayList<>();
+    private List<CarritoItem> items = new ArrayList<>();
 
-    // Método para actualizar el total del carrito
-    public void actualizarTotal() {
-        this.total = items.stream()
-                .map(item -> BigDecimal.valueOf(item.getCantidad())
-                        .multiply(BigDecimal.valueOf(item.getProducto().getPrecio())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+    private LocalDateTime fechaCreacion;
 
-    // Método para agregar un item al carrito
-    public void agregarItem(ItemCarrito item) {
-        items.add(item);
-        item.setCarrito(this);
-        actualizarTotal();
-    }
 
-    // Método para eliminar un item del carrito
-    public void eliminarItem(ItemCarrito item) {
-        items.remove(item);
-        item.setCarrito(null);
-        actualizarTotal();
-    }
+    @Column(precision = 10, scale = 2)
+    private BigDecimal total;
 
-    // Método para convertir el carrito en un pedido
-    public Pedido convertirAPedido(EstadoPedido estadoInicial) {
-        Pedido pedido = new Pedido();
-        pedido.setFecha(LocalDateTime.now());
-        pedido.setUsuario(this.usuario);
-        pedido.setEstadoPedido(estadoInicial);
-
-        return pedido;
+    // Método para calcular el total
+    public void calcularTotal() {
+        this.total = BigDecimal.valueOf(items.stream()
+                .mapToDouble(item -> item.getCantidad() * item.getProducto().getPrecio())
+                .sum());
     }
 }

@@ -1,5 +1,4 @@
 package com.ecommerce.backendnpu.repository;
-
 import com.ecommerce.backendnpu.model.Carrito;
 import com.ecommerce.backendnpu.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;

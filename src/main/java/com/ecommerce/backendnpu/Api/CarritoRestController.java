@@ -1,103 +1,84 @@
 package com.ecommerce.backendnpu.Api;
-import com.ecommerce.backendnpu.model.Carrito;
-import com.ecommerce.backendnpu.model.ItemCarrito;
-import com.ecommerce.backendnpu.model.Pedido;
-import com.ecommerce.backendnpu.model.Usuario;
-import com.ecommerce.backendnpu.repository.UsuarioRepository;
-import com.ecommerce.backendnpu.service.CarritoService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.ecommerce.backendnpu.model.*;
+import com.ecommerce.backendnpu.service.CarritoService;
+import com.ecommerce.backendnpu.service.PedidoService;
+import com.ecommerce.backendnpu.service.ProductoService;
+import com.ecommerce.backendnpu.service.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.Map;
+
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/carrito")
 public class CarritoRestController {
 
     private final CarritoService carritoService;
-    private final UsuarioRepository usuarioRepository;
+    private final ProductoService productoService;
+    private final UsuarioService usuarioService;
+    private final PedidoService pedidoService;
 
-    // Obtener el carrito del usuario actual
-    @GetMapping
-    public ResponseEntity<Carrito> obtenerCarrito(@RequestParam Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + usuarioId));
-
-        Carrito carrito = carritoService.obtenerCarritoUsuario(usuario);
-        return ResponseEntity.ok(carrito);
+    @Autowired
+    public CarritoRestController(CarritoService carritoService, ProductoService productoService,
+                                 UsuarioService usuarioService, PedidoService pedidoService) {
+        this.carritoService = carritoService;
+        this.productoService = productoService;
+        this.usuarioService = usuarioService;
+        this.pedidoService = pedidoService;
     }
 
-    // Agregar un producto al carrito
-    @PostMapping("/agregar")
-    public ResponseEntity<Carrito> agregarProducto(
-            @RequestParam Long usuarioId,
-            @RequestParam Long productoId,
-            @RequestParam Integer cantidad) {
+    @PostMapping("/confirmar")
+    @PreAuthorize("hasRole('ROLE_COMPRADOR')")
+    public ResponseEntity<?> confirmarPedido() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Usuario usuario = usuarioService.findByCorreo(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + usuarioId));
+        Carrito carrito = carritoService.findByUsuario(usuario)
+                .orElseThrow(() -> new RuntimeException("Carrito no encontrado"));
 
-        Carrito carrito = carritoService.agregarProducto(usuario, productoId, cantidad);
-        return ResponseEntity.status(HttpStatus.CREATED).body(carrito);
-    }
+        if (carrito.getItems().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Carrito vacío"));
+        }
 
-    // Actualizar la cantidad de un producto en el carrito
-    @PutMapping("/actualizar")
-    public ResponseEntity<Carrito> actualizarCantidad(
-            @RequestParam Long usuarioId,
-            @RequestParam Long productoId,
-            @RequestParam Integer cantidad) {
+        // Validar stock
+        for (CarritoItem item : carrito.getItems()) {
+            Producto producto = item.getProducto();
+            if (producto.getStock() < item.getCantidad()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Stock insuficiente para: " + producto.getNombre()));
+            }
+        }
 
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + usuarioId));
+        // Crear Pedido
+        Pedido pedido = new Pedido();
+        pedido.setComprador(usuario);
+        pedido.setEstado(EstadoPedido.PENDIENTE);
 
-        Carrito carrito = carritoService.actualizarCantidad(usuario, productoId, cantidad);
-        return ResponseEntity.ok(carrito);
-    }
+        // Convertir CarritoItems a PedidoItems y actualizar stock
+        for (CarritoItem item : carrito.getItems()) {
+            PedidoItem pedidoItem = new PedidoItem();
+            pedidoItem.setProducto(item.getProducto());
+            pedidoItem.setCantidad(item.getCantidad());
+            pedidoItem.setPreciounitario(item.getProducto().getPrecio());
+            pedido.agregarItem(pedidoItem);
 
-    // Eliminar un producto del carrito
-    @DeleteMapping("/eliminar")
-    public ResponseEntity<Void> eliminarProducto(
-            @RequestParam Long usuarioId,
-            @RequestParam Long productoId) {
+            Producto producto = item.getProducto();
+            producto.setStock(producto.getStock() - item.getCantidad());
+            productoService.save(producto);
+        }
 
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + usuarioId));
-
-        carritoService.eliminarProducto(usuario, productoId);
-        return ResponseEntity.noContent().build();
-    }
-
-    // Vaciar el carrito
-    @DeleteMapping("/vaciar")
-    public ResponseEntity<Void> vaciarCarrito(@RequestParam Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + usuarioId));
-
+        pedido.calcularTotal();
+        pedidoService.save(pedido);
         carritoService.vaciarCarrito(usuario);
-        return ResponseEntity.noContent().build();
-    }
 
-    // Ver los productos en el carrito
-    @GetMapping("/items")
-    public ResponseEntity<List<ItemCarrito>> obtenerItemsCarrito(@RequestParam Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + usuarioId));
-
-        List<ItemCarrito> items = carritoService.obtenerItemsCarrito(usuario);
-        return ResponseEntity.ok(items);
-    }
-
-    // Procesar la compra (convertir el carrito en un pedido)
-    @PostMapping("/checkout")
-    public ResponseEntity<Pedido> procesarCompra(@RequestParam Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + usuarioId));
-
-        Pedido pedido = carritoService.procesarCompra(usuario);
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedido);
+        return ResponseEntity.ok(pedido);
     }
 }

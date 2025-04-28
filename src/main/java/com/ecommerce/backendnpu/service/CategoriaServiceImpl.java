@@ -16,22 +16,27 @@ public class CategoriaServiceImpl implements CategoriaService {
         this.categoriaRepository = categoriaRepository;
     }
 
+    @Override
     public List<Categoria> findAllCategorias() {
         return categoriaRepository.findAll();
     }
 
-    public Optional<Categoria> findCategoriaById(Long id) {
+    @Override
+    public Optional<Categoria> findById(Long id) {
         return categoriaRepository.findById(id);
     }
 
-    public Optional<Categoria> findCategoriaByNombre(String nombre) {
+    @Override
+    public Optional<Categoria> findByNombre(String nombre) {
         return categoriaRepository.findByNombre(nombre);
     }
 
+    @Override
     public Categoria saveCategoria(Categoria categoria) {
         return categoriaRepository.save(categoria);
     }
 
+    @Override
     public void deleteCategoriaById(Long id) {
         categoriaRepository.deleteById(id);
     }

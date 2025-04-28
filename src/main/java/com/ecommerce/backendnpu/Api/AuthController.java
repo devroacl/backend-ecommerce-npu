@@ -9,6 +9,7 @@ import com.ecommerce.backendnpu.model.Usuario;
 import com.ecommerce.backendnpu.repository.RolRepository;
 import com.ecommerce.backendnpu.repository.UsuarioRepository;
 import com.ecommerce.backendnpu.security.JwtUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -67,26 +70,66 @@ public class AuthController {
 
     @PostMapping("/registro")
     public ResponseEntity<?> registro(@RequestBody RegistroRequest request) {
+        // Validar correo único
         if (usuarioRepository.existsByCorreo(request.correo())) {
-            return ResponseEntity.badRequest().body("Error: Correo ya registrado");
+            return ResponseEntity.badRequest().body(Map.of("error", "El correo ya está registrado"));
         }
 
-        if (!validarRut(request.rut())) {
-            return ResponseEntity.badRequest().body("Error: RUT inválido");
+        // ======= Validación RUT chileno (módulo 11) =======
+        String rut = request.rut()
+                .replace(".", "")
+                .replace("-", "")
+                .trim()
+                .toUpperCase();
+
+        // Validación básica de formato
+        if (rut.length() < 2) {
+            return ResponseEntity.badRequest().body(Map.of("error", "RUT incompleto"));
         }
 
+        // Separar número y dígito verificador
+        String rutNumeroStr = rut.substring(0, rut.length() - 1);
+        char dvIngresado = rut.charAt(rut.length() - 1);
+
+        // Validar que el número sea válido
+        if (!rutNumeroStr.matches("\\d+")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Parte numérica del RUT inválida"));
+        }
+
+        try {
+            int rutNumero = Integer.parseInt(rutNumeroStr);
+            char dvCalculado = calcularDigitoVerificador(rutNumero);
+
+            // Validar dígito verificador
+            if (dvIngresado != dvCalculado) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "RUT inválido",
+                        "detalle", "Dígito verificador incorrecto. Debería ser: " + dvCalculado
+                ));
+            }
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "RUT numérico inválido"));
+        }
+        // ======= Fin validación RUT =======
+
+        // Resto de la lógica de registro...
         Rol rolUsuario;
-        switch (request.tipoUsuario().toUpperCase()) {
-            case "COMPRADOR":
-                rolUsuario = rolRepository.findByNombre(ERol.ROLE_COMPRADOR)
-                        .orElseThrow(() -> new RuntimeException("Error: Rol COMPRADOR no configurado"));
-                break;
-            case "VENDEDOR":
-                rolUsuario = rolRepository.findByNombre(ERol.ROLE_VENDEDOR)
-                        .orElseThrow(() -> new RuntimeException("Error: Rol VENDEDOR no configurado"));
-                break;
-            default:
-                return ResponseEntity.badRequest().body("Error: Tipo de usuario inválido");
+        try {
+            switch (request.tipoUsuario().toUpperCase()) {
+                case "COMPRADOR":
+                    rolUsuario = rolRepository.findByNombre(ERol.ROLE_COMPRADOR)
+                            .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+                    break;
+                case "VENDEDOR":
+                    rolUsuario = rolRepository.findByNombre(ERol.ROLE_VENDEDOR)
+                            .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+                    break;
+                default:
+                    return ResponseEntity.badRequest().body(Map.of("error", "Tipo de usuario inválido"));
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error de configuración: " + e.getMessage()));
         }
 
         Usuario usuario = new Usuario();
@@ -94,109 +137,45 @@ public class AuthController {
         usuario.setContrasena(passwordEncoder.encode(request.contrasena()));
         usuario.setNombreUsuario(request.nombre());
         usuario.setApellido(request.apellido());
-        usuario.setRut(request.rut());
+        usuario.setRut(formatearRut(rut)); // Guardar RUT formateado
         usuario.setRol(rolUsuario);
-        //usuario.setActivo(true);
 
         usuarioRepository.save(usuario);
 
-        // Autenticar al usuario recién registrado
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.correo(),
-                        request.contrasena()
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "mensaje", "Usuario registrado exitosamente",
+                "detalles", Map.of(
+                        "id", usuario.getId(),
+                        "correo", usuario.getCorreo(),
+                        "rut", usuario.getRut(),
+                        "rol", usuario.getRol().getNombre().name()
                 )
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateToken(authentication);
-
-        return ResponseEntity.ok(new JwtResponse(
-                jwt,
-                usuario.getId(),
-                usuario.getCorreo(),
-                usuario.getRol().getNombre().name()
         ));
     }
 
-    public boolean validarRut(String rut) {
-        // Si viene vacío retornamos false
-        if (rut == null || rut.trim().isEmpty()) {
-            return false;
-        }
-
-        // Eliminamos puntos y guiones
-        rut = rut.replace(".", "").replace("-", "").trim().toUpperCase();
-
-        // Verificamos que tenga largo mínimo
-        if (rut.length() < 2) {
-            return false;
-        }
-
-        // Separamos el número del dígito verificador
-        String rutNumero = rut.substring(0, rut.length() - 1);
-        char dvIngresado = rut.charAt(rut.length() - 1);
-
-        try {
-            // Convertimos a entero
-            int rutInt = Integer.parseInt(rutNumero);
-
-            // Calculamos el dígito verificador esperado
-            char dvEsperado = calcularDv(rutInt);
-
-            // Comparamos el dígito verificador ingresado con el calculado
-            return dvIngresado == dvEsperado;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    /**
-     * Calcula el dígito verificador de un RUT usando el algoritmo del módulo 11.
-     * @param rut Número del RUT sin dígito verificador
-     * @return Carácter correspondiente al dígito verificador ('0'-'9' o 'K')
-     */
-    public char calcularDv(int rut) {
+    // Método para calcular dígito verificador
+    private char calcularDigitoVerificador(int rut) {
         int m = 0;
         int s = 1;
 
-        // Algoritmo módulo 11
         for (; rut != 0; rut /= 10) {
             s = (s + rut % 10 * (9 - m++ % 6)) % 11;
         }
 
-        // Determinamos el dígito verificador
-        return (char) (s != 0 ? s + '0' - 1 : 'K');
+        return (char) (s != 0 ? s + 47 : 75); // 75 = 'K', 47 = '0' - 1 en ASCII
     }
 
-    /**
-     * Método auxiliar para formatear un RUT con puntos y guión.
-     * @param rut El RUT sin formato (solo números y dígito verificador)
-     * @return RUT formateado (ejemplo: 12.345.678-9)
-     */
-    public String formatearRut(String rut) {
-        // Eliminamos puntos y guiones si los tiene
-        rut = rut.replace(".", "").replace("-", "").trim();
+    // Método para formatear RUT (opcional)
+    private String formatearRut(String rut) {
+        StringBuilder resultado = new StringBuilder(rut.replaceAll("[^\\dK]", ""));
+        int length = resultado.length() - 1;
 
-        // Separamos número y dígito verificador
-        String numero = rut.substring(0, rut.length() - 1);
-        String dv = rut.substring(rut.length() - 1);
-
-        // Formateamos con puntos
-        StringBuilder resultado = new StringBuilder();
-        int count = 0;
-
-        for (int i = numero.length() - 1; i >= 0; i--) {
-            if (count == 3 && i != 0) {
-                resultado.insert(0, ".");
-                count = 0;
-            }
-            resultado.insert(0, numero.charAt(i));
-            count++;
+        for (int i = length - 1; i > 0; i -= 3) {
+            resultado.insert(i, ".");
         }
 
-        // Agregamos el guión y dígito verificador
-        return resultado + "-" + dv;
+        return resultado.insert(resultado.length() - 1, "-").toString();
     }
+
 
 }

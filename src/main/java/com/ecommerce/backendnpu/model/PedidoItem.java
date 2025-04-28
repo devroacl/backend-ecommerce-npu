@@ -1,18 +1,17 @@
 package com.ecommerce.backendnpu.model;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "items_pedido")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ItemsPedido {
+public class PedidoItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,20 +23,16 @@ public class ItemsPedido {
     @Column(name = "preciounitario")
     private Double preciounitario;
 
-    //pedidos_id INT (Conecta con entidad pedidos)
-
     @ManyToOne
-    @JoinColumn(name = "pedidosId", nullable = false)
+    @JoinColumn(name = "pedido_id", nullable = false)
     private Pedido pedido;
 
-    /***productos_id Int (conecta con la entidad productos)
-    Falta conectar con Entidad producto***/
-
     @ManyToOne
-    @JoinColumn(name = "pedido",nullable = false)
+    @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
-
-    public void setSubtotal(Integer Integer) {
+    // Método para calcular subtotal
+    public Double calcularSubtotal() {
+        return cantidad * preciounitario;
     }
 }

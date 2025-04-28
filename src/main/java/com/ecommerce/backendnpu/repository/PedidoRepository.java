@@ -1,5 +1,6 @@
 package com.ecommerce.backendnpu.repository;
 
+
 import com.ecommerce.backendnpu.model.Pedido;
 import com.ecommerce.backendnpu.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,11 +10,5 @@ import java.util.List;
 
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
-    // Ya hereda métodos como save(), findById(), findAll(), deleteById()
-
-    // Añadir método para buscar pedidos por usuario
-    List<Pedido> findByUsuarioId(Usuario usuario);
-
-
-
+    List<Pedido> findByComprador(Usuario comprador);
 }

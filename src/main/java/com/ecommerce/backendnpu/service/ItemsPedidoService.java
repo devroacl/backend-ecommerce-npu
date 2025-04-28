@@ -1,16 +1,16 @@
 package com.ecommerce.backendnpu.service;
 
-import com.ecommerce.backendnpu.model.ItemsPedido;
+import com.ecommerce.backendnpu.model.PedidoItem;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface ItemsPedidoService {
-    List<ItemsPedido> findAllItemsPedido();
+    List<PedidoItem> findAllItemsPedido();
 
-    Optional<ItemsPedido> findItemsPedidoById(Long id);
+    Optional<PedidoItem> findItemsPedidoById(Long id);
 
-    ItemsPedido saveItemsPedido(ItemsPedido itemPedido);
+    PedidoItem saveItemsPedido(PedidoItem itemPedido);
 
     void deleteItemsPedidoById(Long id);
 }

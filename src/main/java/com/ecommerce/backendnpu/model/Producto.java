@@ -6,14 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 
 @Entity
 @Table(name = "producto")
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Producto {
@@ -40,7 +38,9 @@ public class Producto {
         @Column(name = "fecha_actualizacion")
         private LocalDateTime fechaActualizacion;
 
-        private boolean activo = true;  // Por defecto está activo
+
+        @Column(name = "activo", nullable = false)
+        private Boolean activo = true;
 
         @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(name = "categoria_id")
@@ -61,4 +61,6 @@ public class Producto {
         protected void onUpdate() {
                 fechaActualizacion = LocalDateTime.now();
         }
+
+
 }

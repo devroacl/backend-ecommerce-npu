@@ -7,19 +7,18 @@ import lombok.Data;
 @Entity
 @Table(name = "item_carrito")
 @Data
-public class ItemCarrito {
+public class CarritoItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "producto_id")
+    private Producto producto;
+
     private Integer cantidad;
 
     @ManyToOne
-    @JoinColumn(name = "producto_id", nullable = false)
-    private Producto producto;
-
-    @ManyToOne
-    @JoinColumn(name = "carrito_id", nullable = false)
+    @JoinColumn(name = "carrito_id")
     private Carrito carrito;
 }

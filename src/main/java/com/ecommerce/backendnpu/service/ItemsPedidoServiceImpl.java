@@ -1,6 +1,6 @@
 package com.ecommerce.backendnpu.service;
 
-import com.ecommerce.backendnpu.model.ItemsPedido;
+import com.ecommerce.backendnpu.model.PedidoItem;
 import com.ecommerce.backendnpu.repository.ItemsPedidoRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,17 +16,17 @@ public class ItemsPedidoServiceImpl implements ItemsPedidoService {
     }
 
     @Override
-    public List<ItemsPedido> findAllItemsPedido() {
+    public List<PedidoItem> findAllItemsPedido() {
         return itemsPedidoRepository.findAll();
     }
 
     @Override
-    public Optional<ItemsPedido> findItemsPedidoById(Long id) {
+    public Optional<PedidoItem> findItemsPedidoById(Long id) {
         return itemsPedidoRepository.findById(id);
     }
 
     @Override
-    public ItemsPedido saveItemsPedido(ItemsPedido itemPedido) {
+    public PedidoItem saveItemsPedido(PedidoItem itemPedido) {
         return itemsPedidoRepository.save(itemPedido);
     }
 
