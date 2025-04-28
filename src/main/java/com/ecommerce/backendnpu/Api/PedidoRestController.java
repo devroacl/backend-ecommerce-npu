@@ -1,83 +1,56 @@
 package com.ecommerce.backendnpu.Api;
 
-import com.ecommerce.backendnpu.model.ItemsPedido;
+
 import com.ecommerce.backendnpu.model.Pedido;
-import com.ecommerce.backendnpu.service.PedidoServiceImpl;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import com.ecommerce.backendnpu.model.PedidoItem;
+import com.ecommerce.backendnpu.model.Usuario;
+import com.ecommerce.backendnpu.service.PedidoService;
+import com.ecommerce.backendnpu.service.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
-@RequiredArgsConstructor
-@RequestMapping("/pedidos")
+@RequestMapping("/api/pedidos")
 public class PedidoRestController {
-    private final PedidoServiceImpl pedidoService;
 
-    // Crear un nuevo pedido
-    @PostMapping
-    public ResponseEntity<Pedido> crearPedido(@RequestBody Pedido pedido) {
-        Pedido nuevoPedido = pedidoService.crearPedido(pedido);
-        return new ResponseEntity<>(nuevoPedido, HttpStatus.CREATED);
+    private final PedidoService pedidoService;
+    private final UsuarioService usuarioService;
+
+    @Autowired
+    public PedidoRestController(PedidoService pedidoService, UsuarioService usuarioService) {
+        this.pedidoService = pedidoService;
+        this.usuarioService = usuarioService;
     }
 
-    // Obtener todos los pedidos
-    @GetMapping
-    public ResponseEntity<List<Pedido>> obtenerTodosLosPedidos() {
-        List<Pedido> pedidos = pedidoService.obtenerTodosLosPedidos();
-        return new ResponseEntity<>(pedidos, HttpStatus.OK);
+    // Obtener pedidos del comprador autenticado
+    @GetMapping("/mis-pedidos")
+    @PreAuthorize("hasRole('ROLE_COMPRADOR')")
+    public ResponseEntity<List<Pedido>> getPedidosDelComprador() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Usuario comprador = usuarioService.findByCorreo(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        List<Pedido> pedidos = pedidoService.findByComprador(comprador);
+        return ResponseEntity.ok(pedidos);
     }
 
-    // Obtener un pedido por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Pedido> obtenerPedidoPorId(@PathVariable Long id) {
-        Pedido pedido = pedidoService.obtenerPedidoPorId(id);
-        return new ResponseEntity<>(pedido, HttpStatus.OK);
-    }
+//----------Vendedor vea sus ventas------
 
-    // Obtener los pedidos de un usuario específico
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<Pedido>> obtenerPedidosPorUsuario(@PathVariable Long usuarioId) {
-        List<Pedido> pedidos = pedidoService.obtenerPedidosPorUsuario(usuarioId);
-        return new ResponseEntity<>(pedidos, HttpStatus.OK);
-    }
-
-    // Obtener los items de un pedido
-    @GetMapping("/{id}/items")
-    public ResponseEntity<List<ItemsPedido>> obtenerItemsPedido(@PathVariable Long id) {
-        List<ItemsPedido> items = pedidoService.obtenerItemsPedido(id);
-        return new ResponseEntity<>(items, HttpStatus.OK);
-    }
-
-    // Actualizar el estado de un pedido
-    @PatchMapping("/{id}/estado")
-    public ResponseEntity<Pedido> actualizarEstadoPedido(
-            @PathVariable Long id,
-            @RequestBody Map<String, String> estado) {
-
-        String nuevoEstado = estado.get("estado");
-        if (nuevoEstado == null || nuevoEstado.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        Pedido pedidoActualizado = pedidoService.actualizarEstadoPedido(id, nuevoEstado);
-        return new ResponseEntity<>(pedidoActualizado, HttpStatus.OK);
-    }
-
-    // Eliminar un pedido por ID
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarPedido(@PathVariable Long id) {
-        pedidoService.eliminarPedido(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-   @PutMapping("/{id}")
-    public ResponseEntity<Pedido> actualizarPedido(@PathVariable Long id, @RequestBody Pedido pedido) {
-        pedidoService.actualizarPedido(id);
-        return new ResponseEntity<>(pedido, HttpStatus.OK);
+    @GetMapping("/mis-ventas")
+    @PreAuthorize("hasRole('ROLE_VENDEDOR')")
+    public ResponseEntity<List<PedidoItem>> getVentasDelVendedor() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Usuario vendedor = usuarioService.findByCorreo(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        List<PedidoItem> itemsVendidos = pedidoService.findPedidoItemsByVendedor(vendedor);
+        return ResponseEntity.ok(itemsVendidos);
     }
 
 
