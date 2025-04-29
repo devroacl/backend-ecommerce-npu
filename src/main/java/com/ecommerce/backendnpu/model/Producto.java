@@ -2,7 +2,7 @@ package com.ecommerce.backendnpu.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -49,6 +49,7 @@ public class Producto {
         @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(name = "vendedor_id")
         private Usuario vendedor;
+
 
         // Métodos de ciclo de vida
         @PrePersist
