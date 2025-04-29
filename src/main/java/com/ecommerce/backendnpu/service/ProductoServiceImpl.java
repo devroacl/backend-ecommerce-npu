@@ -17,16 +17,16 @@ import java.util.UUID;
 public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
-    private final GoogleCloudStorageService storageService;
+    private final GoogleCloudStorageService storageService; // Añadir
 
     @Autowired
-    public ProductoServiceImpl(ProductoRepository productoRepository,
-                               GoogleCloudStorageService storageService) {
+    public ProductoServiceImpl(
+            ProductoRepository productoRepository,
+            GoogleCloudStorageService storageService // Inyectar
+    ) {
         this.productoRepository = productoRepository;
-        this.storageService = storageService;
+        this.storageService = storageService; // Inicializar
     }
-
-
 
     // Implementar todos los métodos de la interfaz
 
@@ -50,14 +50,8 @@ public class ProductoServiceImpl implements ProductoService {
         return productoRepository.findByNombreContainingIgnoreCase(nombre);
     }
 
-    // Modificar el método save para manejar imágenes
     @Override
-    public Producto save(Producto producto, MultipartFile imagen) {
-        if (imagen != null && !imagen.isEmpty()) {
-            String fileName = generarNombreUnico(imagen);
-            storageService.uploadFile(imagen, fileName);
-            producto.setImagen(fileName);
-        }
+    public Producto save(Producto producto) {
         return productoRepository.save(producto);
     }
 
@@ -71,7 +65,7 @@ public class ProductoServiceImpl implements ProductoService {
     public Optional<Producto> findById(Long id) {
         return productoRepository.findById(id).map(producto -> {
             if (producto.getImagen() != null) {
-                producto.setImagen(storageService.generateSignedUrl(producto.getImagen()));
+                producto.setImagenUrl(storageService.generateSignedUrl(producto.getImagen()));
             }
             return producto;
         });

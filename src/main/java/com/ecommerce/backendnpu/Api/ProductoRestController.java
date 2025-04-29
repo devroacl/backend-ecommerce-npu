@@ -6,6 +6,7 @@ import com.ecommerce.backendnpu.model.Categoria;
 import com.ecommerce.backendnpu.model.Producto;
 import com.ecommerce.backendnpu.model.Usuario;
 import com.ecommerce.backendnpu.service.CategoriaService;
+import com.ecommerce.backendnpu.service.GoogleCloudStorageService;
 import com.ecommerce.backendnpu.service.ProductoService;
 import com.ecommerce.backendnpu.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,14 +35,22 @@ public class ProductoRestController {
     private final ProductoService productoService;
     private final CategoriaService categoriaService;
     private final UsuarioService usuarioService;
-   // private final Path rootLocation = Paths.get("uploads/productos");
+    private final GoogleCloudStorageService storageService; // Añadir
 
-
-    public ProductoRestController(ProductoService productoService, CategoriaService categoriaService, UsuarioService usuarioService) {
+    @Autowired
+    public ProductoRestController(
+            ProductoService productoService,
+            CategoriaService categoriaService,
+            UsuarioService usuarioService,
+            GoogleCloudStorageService storageService // Inyectar
+    ) {
         this.productoService = productoService;
         this.categoriaService = categoriaService;
         this.usuarioService = usuarioService;
+        this.storageService = storageService; // Inicializar
     }
+
+
 
     // ==================== ENDPOINTS PÚBLICOS ====================
     @GetMapping("/disponibles")
@@ -110,14 +119,19 @@ public class ProductoRestController {
             producto.setVendedor(vendedor);
             producto.setActivo(true);
 
-            Producto productoGuardado = productoService.save(producto, imagen);
+            // Manejo de la imagen antes de guardar
+            if (imagen != null && !imagen.isEmpty()) {
+                String fileName = storageService.uploadFile(imagen);
+                producto.setImagen(fileName);
+            }
+
+            Producto productoGuardado = productoService.save(producto);
             return ResponseEntity.status(HttpStatus.CREATED).body(productoGuardado);
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
-
 
 
 
@@ -134,22 +148,43 @@ public class ProductoRestController {
     @PreAuthorize("hasRole('ROLE_VENDEDOR')")
     public ResponseEntity<?> actualizarProducto(
             @PathVariable Long id,
-            // ... otros parámetros ...
+            @RequestParam(value = "nombre", required = false) String nombre,
+            @RequestParam(value = "descripcion", required = false) String descripcion,
+            @RequestParam(value = "precio", required = false) Double precio,
+            @RequestParam(value = "stock", required = false) Integer stock,
+            @RequestParam(value = "categoriaId", required = false) Long categoriaId,
             @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
 
         Producto producto = productoService.findById(id)
                 .orElseThrow(() -> new ProductoNotFoundException("Producto no encontrado"));
 
-        // ... validaciones de vendedor ...
+        // Validar propiedad
+        Usuario vendedor = obtenerUsuarioAutenticado();
+        if (!producto.getVendedor().getId().equals(vendedor.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
+        // Actualizar campos
+        Optional.ofNullable(nombre).ifPresent(producto::setNombre);
+        Optional.ofNullable(descripcion).ifPresent(producto::setDescripcion);
+        Optional.ofNullable(precio).ifPresent(producto::setPrecio);
+        Optional.ofNullable(stock).ifPresent(producto::setStock);
+
+        // Actualizar categoría
+        Optional.ofNullable(categoriaId).ifPresent(idCat ->
+                categoriaService.findById(idCat).ifPresent(producto::setCategoria)
+        );
+
+        // Manejar imagen
         if (imagen != null && !imagen.isEmpty()) {
             if (producto.getImagen() != null) {
                 storageService.deleteFile(producto.getImagen());
             }
+            String nuevoNombreImagen = storageService.uploadFile(imagen);
+            producto.setImagen(nuevoNombreImagen);
         }
 
-        // Actualiza otros campos...
-        Producto productoActualizado = productoService.save(producto, imagen);
+        Producto productoActualizado = productoService.save(producto);
         return ResponseEntity.ok(productoActualizado);
     }
 
@@ -159,10 +194,14 @@ public class ProductoRestController {
     public ResponseEntity<?> cambiarEstadoProducto(
             @PathVariable Long id,
             @RequestParam boolean activo) {
+
         Producto producto = productoService.findById(id)
                 .orElseThrow(() -> new ProductoNotFoundException("Producto no encontrado"));
+
         producto.setActivo(activo);
-        return ResponseEntity.ok(productoService.save(producto,"urldeimagendeGcl"));
+        Producto productoActualizado = productoService.save(producto); // Sin parámetro de imagen
+
+        return ResponseEntity.ok(productoActualizado);
     }
 
     // ==================== MÉTODOS AUXILIARES ====================

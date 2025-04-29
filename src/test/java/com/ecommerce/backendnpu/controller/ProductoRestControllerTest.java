@@ -58,7 +58,7 @@ public class ProductoRestControllerTest {
     private Authentication authentication;
 
     @InjectMocks
-    private ProductoRestController productoRestController;
+    public ProductoRestController productoRestController;
 
     private Usuario vendedor;
     private Categoria categoria;

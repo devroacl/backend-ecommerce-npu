@@ -15,7 +15,7 @@ public interface ProductoService {
         List<Producto> findByCategoria(Categoria categoria);
         List<Producto> findByVendedor(Usuario vendedor);
         List<Producto> findByNombreContaining(String nombre);
-        Producto save(Producto producto, MultipartFile imagen);
+        Producto save(Producto producto);
         void delete(Long id);
         Optional<Producto> findById(Long id);
         List<Producto> findByActivoTrue();
