@@ -7,21 +7,26 @@ import com.ecommerce.backendnpu.model.Usuario;
 import com.ecommerce.backendnpu.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
-
+    private final GoogleCloudStorageService storageService;
 
     @Autowired
-    public ProductoServiceImpl(ProductoRepository productoRepository) {
+    public ProductoServiceImpl(ProductoRepository productoRepository,
+                               GoogleCloudStorageService storageService) {
         this.productoRepository = productoRepository;
-
+        this.storageService = storageService;
     }
+
+
 
     // Implementar todos los métodos de la interfaz
 
@@ -45,8 +50,14 @@ public class ProductoServiceImpl implements ProductoService {
         return productoRepository.findByNombreContainingIgnoreCase(nombre);
     }
 
+    // Modificar el método save para manejar imágenes
     @Override
-    public Producto save(Producto producto) {
+    public Producto save(Producto producto, MultipartFile imagen) {
+        if (imagen != null && !imagen.isEmpty()) {
+            String fileName = generarNombreUnico(imagen);
+            storageService.uploadFile(imagen, fileName);
+            producto.setImagen(fileName);
+        }
         return productoRepository.save(producto);
     }
 
@@ -55,11 +66,21 @@ public class ProductoServiceImpl implements ProductoService {
         productoRepository.deleteById(id);
     }
 
-    //Arreglar el
+
     @Override
     public Optional<Producto> findById(Long id) {
-        return productoRepository.findById(id);
+        return productoRepository.findById(id).map(producto -> {
+            if (producto.getImagen() != null) {
+                producto.setImagen(storageService.generateSignedUrl(producto.getImagen()));
+            }
+            return producto;
+        });
     }
+
+    private String generarNombreUnico(MultipartFile file) {
+        return UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+    }
+
 
     @Override
     public List<Producto> findByActivoTrue() {

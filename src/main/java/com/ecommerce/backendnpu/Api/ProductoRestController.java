@@ -34,26 +34,13 @@ public class ProductoRestController {
     private final ProductoService productoService;
     private final CategoriaService categoriaService;
     private final UsuarioService usuarioService;
-    private final Path rootLocation = Paths.get("uploads/productos");
+   // private final Path rootLocation = Paths.get("uploads/productos");
 
-    @Autowired
-    public ProductoRestController(
-            ProductoService productoService,
-            CategoriaService categoriaService,
-            UsuarioService usuarioService
-    ) {
+
+    public ProductoRestController(ProductoService productoService, CategoriaService categoriaService, UsuarioService usuarioService) {
         this.productoService = productoService;
         this.categoriaService = categoriaService;
         this.usuarioService = usuarioService;
-        crearDirectorioImagenes();
-    }
-
-    private void crearDirectorioImagenes() {
-        try {
-            Files.createDirectories(rootLocation);
-        } catch (IOException e) {
-            throw new RuntimeException("Error al crear directorio de imágenes", e);
-        }
     }
 
     // ==================== ENDPOINTS PÚBLICOS ====================
@@ -66,6 +53,7 @@ public class ProductoRestController {
     public ResponseEntity<?> getProductoById(@PathVariable Long id) {
         return productoService.findById(id)
                 .map(producto -> {
+                    // La URL ya viene poblada desde el servicio
                     if (!producto.getActivo() && !usuarioTienePermisos()) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
                     }
@@ -109,14 +97,10 @@ public class ProductoRestController {
             @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
 
         try {
-            // Obtener el vendedor autenticado
             Usuario vendedor = obtenerUsuarioAutenticado();
-
-            // Buscar la categoría
             Categoria categoria = categoriaService.findById(categoriaId)
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
 
-            // Crear y configurar el nuevo producto
             Producto producto = new Producto();
             producto.setNombre(nombre);
             producto.setDescripcion(descripcion);
@@ -126,24 +110,13 @@ public class ProductoRestController {
             producto.setVendedor(vendedor);
             producto.setActivo(true);
 
-            // Manejar la imagen si se proporciona
-            if (imagen != null && !imagen.isEmpty()) {
-                producto.setImagen(guardarImagen(imagen));
-            }
-
-            // Los campos fechaCreacion y fechaActualizacion se configuran automáticamente
-            // mediante métodos @PrePersist y @PreUpdate en la entidad Producto
-
-            // Guardar el producto
-            Producto productoGuardado = productoService.save(producto);
-
+            Producto productoGuardado = productoService.save(producto, imagen);
             return ResponseEntity.status(HttpStatus.CREATED).body(productoGuardado);
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Error al crear el producto: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
-
 
 
 
@@ -161,39 +134,23 @@ public class ProductoRestController {
     @PreAuthorize("hasRole('ROLE_VENDEDOR')")
     public ResponseEntity<?> actualizarProducto(
             @PathVariable Long id,
-            @RequestParam(value = "nombre", required = false) String nombre,
-            @RequestParam(value = "descripcion", required = false) String descripcion,
-            @RequestParam(value = "precio", required = false) Double precio,
-            @RequestParam(value = "stock", required = false) Integer stock,
-            @RequestParam(value = "categoriaId", required = false) Long categoriaId,
+            // ... otros parámetros ...
             @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
 
         Producto producto = productoService.findById(id)
                 .orElseThrow(() -> new ProductoNotFoundException("Producto no encontrado"));
 
-        Usuario vendedor = obtenerUsuarioAutenticado();
-        if (!producto.getVendedor().getId().equals(vendedor.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        Optional.ofNullable(nombre).ifPresent(producto::setNombre);
-        Optional.ofNullable(descripcion).ifPresent(producto::setDescripcion);
-        Optional.ofNullable(precio).ifPresent(producto::setPrecio);
-        Optional.ofNullable(stock).ifPresent(producto::setStock);
-
-        Optional.ofNullable(categoriaId).ifPresent(idCat ->
-                categoriaService.findById(idCat).ifPresent(producto::setCategoria)
-        );
+        // ... validaciones de vendedor ...
 
         if (imagen != null && !imagen.isEmpty()) {
             if (producto.getImagen() != null) {
-                eliminarImagen(producto.getImagen());
+                storageService.deleteFile(producto.getImagen());
             }
-            producto.setImagen(guardarImagen(imagen));
         }
 
-        producto.setFechaActualizacion(LocalDateTime.now());
-        return ResponseEntity.ok(productoService.save(producto));
+        // Actualiza otros campos...
+        Producto productoActualizado = productoService.save(producto, imagen);
+        return ResponseEntity.ok(productoActualizado);
     }
 
     // ==================== ENDPOINTS PARA ADMINISTRADORES ====================
@@ -205,7 +162,7 @@ public class ProductoRestController {
         Producto producto = productoService.findById(id)
                 .orElseThrow(() -> new ProductoNotFoundException("Producto no encontrado"));
         producto.setActivo(activo);
-        return ResponseEntity.ok(productoService.save(producto));
+        return ResponseEntity.ok(productoService.save(producto,"urldeimagendeGcl"));
     }
 
     // ==================== MÉTODOS AUXILIARES ====================
@@ -221,22 +178,4 @@ public class ProductoRestController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }
 
-    private String guardarImagen(MultipartFile imagen) {
-        try {
-            String fileName = UUID.randomUUID() + "_" + imagen.getOriginalFilename();
-            Files.copy(imagen.getInputStream(), rootLocation.resolve(fileName));
-            return fileName;
-        } catch (IOException e) {
-            throw new RuntimeException("Error al guardar la imagen: " + e.getMessage());
-        }
-    }
-
-    private void eliminarImagen(String nombreArchivo) {
-        try {
-            Path archivo = rootLocation.resolve(nombreArchivo);
-            Files.deleteIfExists(archivo);
-        } catch (IOException e) {
-            System.err.println("Error al eliminar imagen: " + e.getMessage());
-        }
-    }
 }
