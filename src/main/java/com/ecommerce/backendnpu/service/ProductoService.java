@@ -4,6 +4,7 @@ package com.ecommerce.backendnpu.service;
 import com.ecommerce.backendnpu.model.Categoria;
 import com.ecommerce.backendnpu.model.Producto;
 import com.ecommerce.backendnpu.model.Usuario;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +15,7 @@ public interface ProductoService {
         List<Producto> findByCategoria(Categoria categoria);
         List<Producto> findByVendedor(Usuario vendedor);
         List<Producto> findByNombreContaining(String nombre);
-        Producto save(Producto producto);
+        Producto save(Producto producto, MultipartFile imagen);
         void delete(Long id);
         Optional<Producto> findById(Long id);
         List<Producto> findByActivoTrue();

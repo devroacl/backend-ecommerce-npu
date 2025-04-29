@@ -1,5 +1,6 @@
 package com.ecommerce.backendnpu.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 
@@ -30,6 +31,10 @@ public class Producto {
 
         private String imagen;
 
+        @Transient
+        private String imagenUrl;
+
+
         private Integer stock;
 
         @Column(name = "fecha_creacion")
@@ -48,6 +53,7 @@ public class Producto {
 
         @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(name = "vendedor_id")
+        @JsonIgnore
         private Usuario vendedor;
 
 
@@ -62,6 +68,8 @@ public class Producto {
         protected void onUpdate() {
                 fechaActualizacion = LocalDateTime.now();
         }
+
+
 
 
 }
