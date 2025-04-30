@@ -34,3 +34,6 @@ build/
 
 # Evita subir datos privados
 .env
+
+# Claves sensibles
+src/main/resources/service-account.json
