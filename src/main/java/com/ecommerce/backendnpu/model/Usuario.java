@@ -31,7 +31,7 @@ public class Usuario {
     @Column(name = "correo", nullable = false, unique = true, length = 50)
     private String correo;
 
-    @Column(name = "rut", nullable = false, length = 10)
+    @Column(name = "rut", nullable = false,length = 9)
     private String rut;
 
 
