@@ -4,15 +4,17 @@ import com.ecommerce.backendnpu.Api.ProductoRestController;
 import com.ecommerce.backendnpu.model.Categoria;
 import com.ecommerce.backendnpu.model.Producto;
 import com.ecommerce.backendnpu.model.Usuario;
-import com.ecommerce.backendnpu.service.CategoriaService;
-import com.ecommerce.backendnpu.service.ProductoService;
-import com.ecommerce.backendnpu.service.UsuarioService;
+import com.ecommerce.backendnpu.security.JwtUtils;
+import com.ecommerce.backendnpu.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
@@ -21,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -40,21 +43,30 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+
+@WebMvcTest(ProductoRestController.class)
+@Import({GoogleCloudStorageService.class, JwtUtils.class})
 public class ProductoRestControllerTest {
 
-    @Mock
-    private ProductoService productoService;
+    @MockitoBean
+    private ProductoServiceImpl productoService;
 
-    @Mock
-    private CategoriaService categoriaService;
+    @MockitoBean
+    GoogleCloudStorageService googleCloudStorageService;
 
-    @Mock
-    private UsuarioService usuarioService;
+    @MockitoBean
+    JwtUtils jwtUtils;
 
-    @Mock
+    @MockitoBean
+    private CategoriaServiceImpl categoriaService;
+
+    @MockitoBean
+    private UsuarioServiceImpl usuarioService;
+
+    @MockitoBean
     private SecurityContext securityContext;
 
-    @Mock
+    @MockitoBean
     private Authentication authentication;
 
     @InjectMocks

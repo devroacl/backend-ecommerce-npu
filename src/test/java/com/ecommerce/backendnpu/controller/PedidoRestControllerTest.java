@@ -1,19 +1,28 @@
 package com.ecommerce.backendnpu.controller;
 
-
 import com.ecommerce.backendnpu.Api.PedidoRestController;
 import com.ecommerce.backendnpu.model.*;
+import com.ecommerce.backendnpu.security.JwtAuthenticationFilter;
+import com.ecommerce.backendnpu.security.JwtUtils;
+import com.ecommerce.backendnpu.security.UserDetailsServiceImpl;
 import com.ecommerce.backendnpu.service.PedidoService;
+import com.ecommerce.backendnpu.service.PedidoServiceImpl;
 import com.ecommerce.backendnpu.service.UsuarioService;
+import com.ecommerce.backendnpu.service.UsuarioServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -27,15 +36,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
+@WebMvcTest(PedidoRestController.class)
+@Import(JwtAuthenticationFilter.class)
 class PedidoRestControllerTest {
 
+
+    @MockitoBean
+    private JwtUtils jwtUtils;
     private MockMvc mockMvc;
+    private UserDetailsServiceImpl UserDetailsServiceImpl;
 
-    @Mock
-    private PedidoService pedidoService;
+    @MockitoBean
+    private PedidoServiceImpl pedidoService;
 
-    @Mock
-    private UsuarioService usuarioService;
+    @MockitoBean
+    private UsuarioServiceImpl usuarioService;
 
     @InjectMocks
     private PedidoRestController pedidoRestController;
@@ -70,7 +85,7 @@ class PedidoRestControllerTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
-    @Test
+    @Test //No testear segurida con poner lo del rol. solo metodos como si no tuviera seguiridad
     void getPedidosDelComprador_Success() throws Exception {
         // Configurar
         Usuario comprador = new Usuario();
