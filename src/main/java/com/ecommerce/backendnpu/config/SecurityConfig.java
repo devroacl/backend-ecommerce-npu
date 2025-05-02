@@ -59,8 +59,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Elimina el método authenticationProvider()
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
@@ -75,13 +73,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+        // CORREGIDO: Eliminada la barra final en los URLs
         config.setAllowedOrigins(List.of(
-                "http://localhost:5173/",
-                "https://ecommercenpu-demo-1j0iswohv-devroas-projects.vercel.app"
+                "http://localhost:5176",  // CUANDO ESTEMOS EN LOCAL CAMBIAR AL SERVIDOR QUE DIGA LA CONSOLA SIEMPRE CAMBIA SI REINICIAMOS CUANDO ESTAMOS EN VISUAL STUDIO---nosotros usamos Vite-react y npm
+                "https://frontend-ecommerce-demo.vercel.app" // Eliminada la barra al final ---Por el momento este es nuestro servidor publico en la web
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true); // Permitir credenciales si estás usando cookies o autenticación
+
+        // Añadir este header para poder recibir el token
+        config.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
