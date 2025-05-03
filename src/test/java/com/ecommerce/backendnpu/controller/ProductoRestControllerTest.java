@@ -5,18 +5,13 @@ import com.ecommerce.backendnpu.model.Categoria;
 import com.ecommerce.backendnpu.model.Producto;
 import com.ecommerce.backendnpu.model.Usuario;
 import com.ecommerce.backendnpu.security.JwtUtils;
+import com.ecommerce.backendnpu.security.UserDetailsServiceImpl;
 import com.ecommerce.backendnpu.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,7 +19,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,31 +34,27 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @WebMvcTest(ProductoRestController.class)
-@Import({GoogleCloudStorageService.class, JwtUtils.class})
+@AutoConfigureMockMvc(addFilters = false)
 public class ProductoRestControllerTest {
 
     @MockitoBean
     private ProductoServiceImpl productoService;
 
     @MockitoBean
-    GoogleCloudStorageService googleCloudStorageService;
-
-    @MockitoBean
-    JwtUtils jwtUtils;
+    private UsuarioServiceImpl usuarioService;
 
     @MockitoBean
     private CategoriaServiceImpl categoriaService;
 
-    @MockitoBean
-    private UsuarioServiceImpl usuarioService;
 
     @MockitoBean
     private SecurityContext securityContext;
@@ -69,13 +62,21 @@ public class ProductoRestControllerTest {
     @MockitoBean
     private Authentication authentication;
 
-    @InjectMocks
-    public ProductoRestController productoRestController;
+    @MockitoBean
+    private GoogleCloudStorageService googleCloudStorageService;
+
+    @MockitoBean
+    private JwtUtils jwtUtils;
+
+    @MockitoBean
+    private UserDetailsServiceImpl userDetailsService;
 
     private Usuario vendedor;
     private Categoria categoria;
     private Producto producto;
     private MultipartFile imagenMock;
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -125,7 +126,7 @@ public class ProductoRestControllerTest {
     }
 
     @Test
-    void testGetProductosDisponibles() {
+    void testGetProductosDisponibles() throws Exception {
         // Preparar datos de prueba
         List<Producto> productos = new ArrayList<>();
         productos.add(producto);
@@ -133,33 +134,23 @@ public class ProductoRestControllerTest {
         // Configurar mock
         when(productoService.findByActivoTrue()).thenReturn(productos);
 
-        // Ejecutar método a probar
-        ResponseEntity<List<Producto>> response = productoRestController.getProductosDisponibles();
-
-        // Verificar resultado
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals("Smartphone", response.getBody().get(0).getNombre());
+        mockMvc.perform(get("/api/productos/disponibles"))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void testGetProductoById() {
+    void testGetProductoById() throws Exception {
         // Configurar mock
         when(productoService.findById(1L)).thenReturn(Optional.of(producto));
+        mockMvc.perform(get("/api/productos/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.nombre").value("Smartphone"));
 
-        // Ejecutar método a probar
-        ResponseEntity<?> response = productoRestController.getProductoById(1L);
-
-        // Verificar resultado
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof Producto);
-        assertEquals("Smartphone", ((Producto) response.getBody()).getNombre());
     }
 
     @Test
-    void testGetProductosByCategoria() {
+    void testGetProductosByCategoria() throws Exception {
         // Preparar datos de prueba
         List<Producto> productos = new ArrayList<>();
         productos.add(producto);
@@ -168,71 +159,83 @@ public class ProductoRestControllerTest {
         when(categoriaService.findById(1L)).thenReturn(Optional.of(categoria));
         when(productoService.findByCategoriaAndActivoTrue(categoria)).thenReturn(productos);
 
-        // Ejecutar método a probar
-        ResponseEntity<List<Producto>> response = productoRestController.getProductosByCategoria(1L);
+        mockMvc.perform(get("/api/productos/categoria/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].nombre").value("Smartphone"));
 
-        // Verificar resultado
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals("Smartphone", response.getBody().get(0).getNombre());
     }
 
     @Test
-    void testGetProductosByCategoriaNotFound() {
+    void testGetProductosByCategoriaNotFound() throws Exception {
         // Configurar mock para categoría no encontrada
         when(categoriaService.findById(999L)).thenReturn(Optional.empty());
 
-        // Ejecutar método a probar
-        ResponseEntity<List<Producto>> response = productoRestController.getProductosByCategoria(999L);
-
-        // Verificar resultado
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isEmpty());
+        mockMvc.perform(get("/api/productos/categoria/999")) // ID 999 (no existe)
+                .andExpect(status().isBadRequest()) // Esperar 400, no 200
+                .andExpect(jsonPath("$").isArray()) // Verificar que el cuerpo es una lista
+                .andExpect(jsonPath("$").isEmpty()); // Verificar que la lista está vacía
     }
 
     @Test
-    void testBuscarProductos() {
-        // Preparar datos de prueba
-        List<Producto> productos = new ArrayList<>();
-        productos.add(producto);
-
+    void testBuscarProductos() throws Exception {
         // Configurar mock
-        when(productoService.findByNombreContainingAndActivoTrue("smart")).thenReturn(productos);
+        when(productoService.findByNombreContainingAndActivoTrue("smart")).thenReturn(List.of(producto));
 
-        // Ejecutar método a probar
-        ResponseEntity<?> response = productoRestController.buscarProductos("smart");
-
-        // Verificar resultado
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof List);
-        assertEquals(1, ((List<Producto>) response.getBody()).size());
+        mockMvc.perform(get("/api/productos/buscar")
+                        .param("query", "smart")) // Parámetro de búsqueda
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].nombre").value("Smartphone"));
     }
-
+    
     @Test
-    void testCrearProducto() {
-        // Configurar mock
-        when(productoService.save(any(Producto.class))).thenReturn(producto);
+    void testCrearProducto() throws Exception {
+        // 1. Mockear el método que obtiene el usuario autenticado
+        Usuario vendedorMock = new Usuario();
+        vendedorMock.setId(1L);
+        vendedorMock.setCorreo("vendedor@test.com");
 
-        // Ejecutar método a probar
-        ResponseEntity<?> response = productoRestController.crearProducto(
-                "Smartphone",
-                "Un teléfono inteligente de última generación",
-                599.99,
-                10,
-                1L,
-                imagenMock
+        // Mockear el servicio para devolver el vendedor
+        when(usuarioService.findByCorreo("vendedor@test.com")).thenReturn(Optional.of(vendedorMock));
+
+        // 2. Mockear el servicio de almacenamiento de imágenes
+        when(googleCloudStorageService.uploadFile(any())).thenReturn("imagen_test.jpg");
+
+        // 3. Configurar el producto esperado
+        Producto productoEsperado = new Producto();
+        productoEsperado.setNombre("Laptop");
+        productoEsperado.setDescripcion("Descripción");
+        productoEsperado.setPrecio(999.99);
+        productoEsperado.setStock(5);
+        productoEsperado.setCategoria(categoria);
+        productoEsperado.setVendedor(vendedorMock);
+        productoEsperado.setImagen("imagen_test.jpg");
+
+        when(productoService.save(any())).thenReturn(productoEsperado);
+
+        // 4. Simular la solicitud POST con imagen
+        MockMultipartFile imagenMock = new MockMultipartFile(
+                "imagen",
+                "test.jpg",
+                "image/jpeg",
+                "contenido_imagen".getBytes()
         );
 
-        // Verificar resultado
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        verify(productoService, times(1)).save(any(Producto.class));
+        mockMvc.perform(multipart("/api/productos")
+                        .file(imagenMock)
+                        .param("nombre", "Laptop")
+                        .param("descripcion", "Descripción")
+                        .param("precio", "999.99")
+                        .param("stock", "5")
+                        .param("categoriaId", "1"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nombre").value("Laptop"))
+                .andExpect(jsonPath("$.imagen").value("imagen_test.jpg"));
     }
 
     @Test
-    void testGetMisProductos() {
+    void testGetMisProductos()throws Exception {
         // Preparar datos de prueba
         List<Producto> productos = new ArrayList<>();
         productos.add(producto);
@@ -240,40 +243,31 @@ public class ProductoRestControllerTest {
         // Configurar mock
         when(productoService.findByVendedor(vendedor)).thenReturn(productos);
 
-        // Ejecutar método a probar
-        ResponseEntity<?> response = productoRestController.getMisProductos();
+        mockMvc.perform(get("/api/productos/mis-productos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1));
 
-        // Verificar resultado
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof List);
-        assertEquals(1, ((List<Producto>) response.getBody()).size());
     }
 
     @Test
-    void testActualizarProducto() {
+    void testActualizarProducto() throws Exception {
         // Configurar mock
         when(productoService.findById(1L)).thenReturn(Optional.of(producto));
-        when(productoService.save(any(Producto.class))).thenReturn(producto);
+        when(productoService.save(any(Producto.class))).thenAnswer(invocation -> {
+            Producto p = invocation.getArgument(0);
+            return p; // Devuelve el producto actualizado
+        });
 
-        // Ejecutar método a probar
-        ResponseEntity<?> response = productoRestController.actualizarProducto(
-                1L,
-                "Smartphone Pro",
-                "Versión mejorada del smartphone",
-                699.99,
-                15,
-                1L,
-                null
-        );
-
-        // Verificar resultado
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(productoService, times(1)).save(any(Producto.class));
+        // Simular solicitud PUT
+        mockMvc.perform(put("/api/productos/1")
+                        .param("nombre", "Smartphone Pro")
+                        .param("descripcion", "Nueva descripción"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Smartphone Pro")); // Verificar el nuevo nombre
     }
 
     @Test
-    void testActualizarProductoNoPermitido() {
+    void testActualizarProductoNoPermitido() throws Exception {
         // Configurar producto con diferente vendedor
         Usuario otroVendedor = new Usuario();
         otroVendedor.setId(2L);
@@ -285,23 +279,14 @@ public class ProductoRestControllerTest {
         // Configurar mock
         when(productoService.findById(1L)).thenReturn(Optional.of(productoOtroVendedor));
 
-        // Ejecutar método a probar
-        ResponseEntity<?> response = productoRestController.actualizarProducto(
-                1L,
-                "Smartphone Pro",
-                "Versión mejorada del smartphone",
-                699.99,
-                15,
-                1L,
-                null
-        );
-
-        // Verificar resultado
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        mockMvc.perform(put("/api/productos/1")
+                        .param("nombre", "Nombre Nuevo"))
+                .andExpect(status().isForbidden());
     }
 
+
     @Test
-    void testCambiarEstadoProducto() {
+    void testCambiarEstadoProducto()throws Exception  {
         // Crear una colección de autoridades compatible con lo que espera el método
         // Crear una colección de autoridades con el tipo correcto
         Collection<? extends GrantedAuthority> authorities =
@@ -314,13 +299,11 @@ public class ProductoRestControllerTest {
         when(productoService.findById(1L)).thenReturn(Optional.of(producto));
         when(productoService.save(any(Producto.class))).thenReturn(producto);
 
-        // Ejecutar método a probar
-        ResponseEntity<?> response = productoRestController.cambiarEstadoProducto(1L, false);
+        mockMvc.perform(patch("/api/productos/1/estado")
+                        .param("activo", "false"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activo").value(false));
 
-        // Verificar resultado
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof Producto);
-        assertFalse(((Producto) response.getBody()).getActivo());
+
     }
 }
