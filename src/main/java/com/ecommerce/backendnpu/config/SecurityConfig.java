@@ -76,7 +76,7 @@ public class SecurityConfig {
         // CORREGIDO: Eliminada la barra final en los URLs
         config.setAllowedOrigins(List.of(
                 "http://localhost:5176",  // CUANDO ESTEMOS EN LOCAL CAMBIAR AL SERVIDOR QUE DIGA LA CONSOLA SIEMPRE CAMBIA SI REINICIAMOS CUANDO ESTAMOS EN VISUAL STUDIO---nosotros usamos Vite-react y npm
-                "https://frontend-ecommerce-demo.vercel.app" // Eliminada la barra al final ---Por el momento este es nuestro servidor publico en la web
+                "https://ecommercenpu-demo.vercel.app"// Eliminada la barra al final ---Por el momento este es nuestro servidor publico en la web
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
